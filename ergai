@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 内容修改工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        input[type="file"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input[type="file"] {
+            padding: 8px;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        button {
+            flex-grow: 1;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        #modifyButton {
+            background-color: #409eff;
+            color: white;
+        }
+        #modifyButton:hover {
+            background-color: #337ecc;
+        }
+        #downloadButton {
+            background-color: #67c23a;
+            color: white;
+        }
+        #downloadButton:hover {
+            background-color: #529b2e;
+        }
+        #downloadButton:disabled {
+            background-color: #c0c4cc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .message.success {
+            background-color: #f0f9eb;
+            color: #67c23a;
+            border: 1px solid #e1f3d8;
+        }
+        .message.error {
+            background-color: #fef0f0;
+            color: #f56c6c;
+            border: 1px solid #fde2e2;
+        }
+        .info {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>HTML 内容修改工具</h1>
+
+        <div class="form-group">
+            <label for="htmlFileInput">1. 导入 HTML 文件</label>
+            <input type="file" id="htmlFileInput" accept=".html, .htm">
+        </div>
+
+        <div class="form-group">
+            <label for="cssSelectorInput">2. 输入要修改位置的 CSS 选择器</label>
+            <input type="text" id="cssSelectorInput" placeholder="例如: h1, .content, #main-title">
+        </div>
+
+        <div class="form-group">
+            <label for="newContentInput">3. 输入替换后的新内容 (支持HTML标签)</label>
+            <textarea id="newContentInput" placeholder="在这里输入新的文本或 HTML 代码"></textarea>
+        </div>
+
+        <div class="button-group">
+            <button id="modifyButton">执行修改</button>
+            <button id="downloadButton" disabled>下载修改后的文件</button>
+        </div>
+
+        <div id="messageArea"></div>
+        <p class="info">所有操作均在您的浏览器本地完成，文件不会上传至服务器，请放心使用。</p>
+    </div>
+
+    <script>
+        // 全局变量，用于存储修改后的内容和原始文件名
+        let modifiedHtmlContent = null;
+        let originalFileName = 'modified_file.html';
+
+        // 获取 DOM 元素
+        const htmlFileInput = document.getElementById('htmlFileInput');
+        const cssSelectorInput = document.getElementById('cssSelectorInput');
+        const newContentInput = document.getElementById('newContentInput');
+        const modifyButton = document.getElementById('modifyButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const messageArea = document.getElementById('messageArea');
+
+        // 当文件选择变化时，更新原始文件名
+        htmlFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                originalFileName = 'modified_' + file.name;
+            }
+        });
+
+        // "执行修改" 按钮的点击事件
+        modifyButton.addEventListener('click', () => {
+            // 重置状态
+            messageArea.innerHTML = '';
+            downloadButton.disabled = true;
+            modifiedHtmlContent = null;
+
+            // 1. 获取输入
+            const file = htmlFileInput.files[0];
+            const selector = cssSelectorInput.value.trim();
+            const newContent = newContentInput.value;
+
+            // 2. 验证输入
+            if (!file) {
+                showMessage('请先选择一个 HTML 文件。', 'error');
+                return;
+            }
+            if (!selector) {
+                showMessage('请输入 CSS 选择器。', 'error');
+                return;
+            }
+            
+            // 3. 读取文件
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const fileContent = event.target.result;
+                try {
+                    // 4. 解析和修改 HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(fileContent, 'text/html');
+                    
+                    const elementsToModify = doc.querySelectorAll(selector);
+
+                    if (elementsToModify.length === 0) {
+                        showMessage(`未找到匹配 CSS 选择器 "${selector}" 的元素。`, 'error');
+                        return;
+                    }
+
+                    elementsToModify.forEach(element => {
+                        element.innerHTML = newContent;
+                    });
+                    
+                    // 5. 存储修改后的内容
+                    // 使用 doc.documentElement.outerHTML 来确保 <!DOCTYPE> 等完整结构被保留
+                    modifiedHtmlContent = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+                    
+                    // 6. 更新UI
+                    showMessage(`成功修改了 ${elementsToModify.length} 个元素！现在可以下载文件了。`, 'success');
+                    downloadButton.disabled = false;
+
+                } catch (e) {
+                    showMessage(`处理失败：无效的 CSS 选择器或文件内容错误。错误信息: ${e.message}`, 'error');
+                }
+            };
+            
+            reader.onerror = () => {
+                showMessage('读取文件时发生错误。', 'error');
+            };
+
+            reader.readAsText(file, 'UTF-8');
+        });
+
+        // "下载文件" 按钮的点击事件
+        downloadButton.addEventListener('click', () => {
+            if (!modifiedHtmlContent) {
+                showMessage('没有可下载的内容。请先执行修改。', 'error');
+                return;
+            }
+
+            // 创建一个 Blob 对象
+            const blob = new Blob([modifiedHtmlContent], { type: 'text/html;charset=utf-8' });
+
+            // 创建一个隐藏的 a 标签用于下载
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = originalFileName;
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+
+            // 清理
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        });
+
+        // 显示消息的辅助函数
+        function showMessage(text, type) {
+            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+        }
+    </script>
+</body>
+</html>
