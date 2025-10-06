@@ -6,14 +6,13 @@
     <title>HTML 内容修改工具 (专业版)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f9; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .container { background-color: #ffffff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); width: 100%; max-width: 800px; /* 增加了宽度 */ }
+        .container { background-color: #ffffff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); width: 100%; max-width: 600px; }
         h1 { color: #2c3e50; text-align: center; margin-bottom: 25px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #555; }
         input[type="file"], input[type="text"], textarea, select { width: 100%; padding: 12px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s; }
         input[type="file"] { padding: 8px; }
-        /* 核心修改：显著增大了文本框的最小和最大高度 */
-        textarea { min-height: 250px; max-height: 60vh; resize: vertical; font-family: monospace; }
+        textarea { min-height: 120px; resize: vertical; }
         input[type="text"]:focus, textarea:focus, select:focus { outline: none; border-color: #409eff; }
         .button-group { display: flex; gap: 15px; margin-top: 25px; }
         button { flex-grow: 1; padding: 12px 20px; font-size: 16px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.3s, transform 0.1s; }
@@ -27,19 +26,17 @@
         .message.success { background-color: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; }
         .message.error { background-color: #fef0f0; color: #f56c6c; border: 1px solid #fde2e2; }
         .info { font-size: 12px; color: #909399; margin-top: 20px; text-align: center; }
-        /* 核心新增：为标签添加一个小提示 */
-        label .tip { font-weight: normal; font-size: 12px; color: #909399; margin-left: 8px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>HTML 内容修改工具 (专业版)</h1>
         <div class="form-group">
-            <label for="htmlFileInput">1. 导入 HTML 文件 <span class="tip">(选择 0.html)</span></label>
+            <label for="htmlFileInput">1. 导入 HTML 文件</label>
             <input type="file" id="htmlFileInput" accept=".html, .htm">
         </div>
         <div class="form-group">
-            <label for="cssSelectorInput">2. 输入目标位置的 CSS 选择器 <span class="tip">(例如: body > script)</span></label>
+            <label for="cssSelectorInput">2. 输入目标位置的 CSS 选择器</label>
             <input type="text" id="cssSelectorInput" placeholder="例如: body, .content, #main-title">
         </div>
         <div class="form-group">
@@ -53,7 +50,7 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="newContentInput">4. 输入要添加/替换的新内容 <span class="tip">(粘贴完整的新JS代码)</span></label>
+            <label for="newContentInput">4. 输入要添加/替换的新内容</label>
             <textarea id="newContentInput" placeholder="在这里输入要操作的 HTML 代码或文本"></textarea>
         </div>
         <div class="button-group">
@@ -79,8 +76,10 @@
             const file = event.target.files[0];
             if (file) {
                 originalFileName = 'modified_' + file.name;
+                // [核心修改] 当上传新文件时，重置内存中的修改内容
                 modifiedHtmlContent = null; 
                 downloadButton.disabled = true;
+                messageArea.innerHTML = '';
             }
         });
 
@@ -92,11 +91,19 @@
             const mode = modificationMode.value;
             const newContent = newContentInput.value;
 
-            if (!file) { showMessage('请先选择一个 HTML 文件。', 'error'); return; }
-            if (!selector) { showMessage('请输入 CSS 选择器。', 'error'); return; }
+            // [核心修改] 只有在首次修改时才需要检查文件
+            if (!file && !modifiedHtmlContent) { 
+                showMessage('请先选择一个 HTML 文件。', 'error'); 
+                return; 
+            }
+            if (!selector) { 
+                showMessage('请输入 CSS 选择器。', 'error'); 
+                return; 
+            }
             
             const reader = new FileReader();
             reader.onload = (event) => {
+                // [核心修改] 如果已有修改内容，则在修改内容上继续操作，否则读取文件
                 const baseContent = modifiedHtmlContent || event.target.result;
                 try {
                     const parser = new DOMParser();
@@ -128,6 +135,7 @@
                         }
                     });
                     
+                    // [核心修改] 始终将最新结果存回内存
                     modifiedHtmlContent = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
                     showMessage(`成功对 ${elements.length} 个元素执行了 [${mode}] 操作！可以再次修改或下载。`, 'success');
                     downloadButton.disabled = false;
@@ -138,9 +146,11 @@
             };
             reader.onerror = () => showMessage('读取文件时发生错误。', 'error');
             
+            // [核心修改] 只有在首次修改时才真正读取文件
             if (!modifiedHtmlContent) {
                 reader.readAsText(file, 'UTF-8');
             } else {
+                // 如果是连续修改，则直接手动触发 onload，并把内存中的内容传给它
                 reader.onload({ target: { result: modifiedHtmlContent } });
             }
         });
