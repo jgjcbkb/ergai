@@ -76,7 +76,6 @@
             const file = event.target.files[0];
             if (file) {
                 originalFileName = 'modified_' + file.name;
-                // [核心修改] 当上传新文件时，重置内存中的修改内容
                 modifiedHtmlContent = null; 
                 downloadButton.disabled = true;
                 messageArea.innerHTML = '';
@@ -91,7 +90,6 @@
             const mode = modificationMode.value;
             const newContent = newContentInput.value;
 
-            // [核心修改] 只有在首次修改时才需要检查文件
             if (!file && !modifiedHtmlContent) { 
                 showMessage('请先选择一个 HTML 文件。', 'error'); 
                 return; 
@@ -103,7 +101,6 @@
             
             const reader = new FileReader();
             reader.onload = (event) => {
-                // [核心修改] 如果已有修改内容，则在修改内容上继续操作，否则读取文件
                 const baseContent = modifiedHtmlContent || event.target.result;
                 try {
                     const parser = new DOMParser();
@@ -135,7 +132,6 @@
                         }
                     });
                     
-                    // [核心修改] 始终将最新结果存回内存
                     modifiedHtmlContent = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
                     showMessage(`成功对 ${elements.length} 个元素执行了 [${mode}] 操作！可以再次修改或下载。`, 'success');
                     downloadButton.disabled = false;
@@ -146,11 +142,9 @@
             };
             reader.onerror = () => showMessage('读取文件时发生错误。', 'error');
             
-            // [核心修改] 只有在首次修改时才真正读取文件
             if (!modifiedHtmlContent) {
                 reader.readAsText(file, 'UTF-8');
             } else {
-                // 如果是连续修改，则直接手动触发 onload，并把内存中的内容传给它
                 reader.onload({ target: { result: modifiedHtmlContent } });
             }
         });
