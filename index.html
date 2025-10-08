@@ -107,29 +107,50 @@
         /* Outgoing Messages (from you) */
         .message--outgoing {
             align-self: flex-end;
-            flex-direction: row-reverse;
         }
         
-        /* Aligning timestamp for outgoing messages */
-        .message--outgoing .message__content {
-            flex-direction: row-reverse;
-        }
-
         /* Message Bubbles */
         .message__bubble {
             padding: 10px 15px;
             border-radius: 18px;
             line-height: 1.4;
+            position: relative; /* Needed for the bubble tail */
         }
 
         .message--incoming .message__bubble {
             background-color: #FFFFFF;
             border-top-left-radius: 0;
         }
+        
+        /* Bubble tail for incoming messages */
+        .message--incoming .message__bubble::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 10px 10px 0;
+            border-color: transparent #FFFFFF transparent transparent;
+        }
 
         .message--outgoing .message__bubble {
             background-color: #FFEC40; /* Yellow from the image */
             border-top-right-radius: 0;
+        }
+        
+        /* Bubble tail for outgoing messages */
+        .message--outgoing .message__bubble::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 10px 10px;
+            border-color: transparent transparent transparent #FFEC40;
         }
         
         /* Consecutive messages have smaller top margin */
