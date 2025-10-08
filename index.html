@@ -1,245 +1,263 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML 内容修改工具 (V2.0 专业版)</title>
+    <title>Chat Screen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f9; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .container { background-color: #ffffff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); width: 100%; max-width: 800px; }
-        h1 { color: #2c3e50; text-align: center; margin-bottom: 25px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; color: #555; }
-        input[type="file"], input[type="text"], textarea, select { width: 100%; padding: 12px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s; }
-        input[type="file"] { padding: 8px; }
-        textarea { min-height: 150px; resize: vertical; font-family: monospace, sans-serif; }
-        input[type="text"]:focus, textarea:focus, select:focus { outline: none; border-color: #409eff; }
-        .button-group { display: flex; gap: 15px; margin-top: 25px; }
-        button { flex-grow: 1; padding: 12px 20px; font-size: 16px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.3s, transform 0.1s; }
-        button:active { transform: scale(0.98); }
-        #modifyButton { background-color: #409eff; color: white; }
-        #modifyButton:hover { background-color: #337ecc; }
-        #downloadButton { background-color: #67c23a; color: white; }
-        #downloadButton:hover { background-color: #529b2e; }
-        #downloadButton:disabled { background-color: #c0c4cc; cursor: not-allowed; }
-        .message { margin-top: 20px; padding: 12px; border-radius: 6px; text-align: center; font-weight: 500; }
-        .message.success { background-color: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; }
-        .message.error { background-color: #fef0f0; color: #f56c6c; border: 1px solid #fde2e2; }
-        .info { font-size: 12px; color: #909399; margin-top: 20px; text-align: center; }
-        .flex-group { display: flex; gap: 10px; align-items: center; }
-        .flex-group label { flex-shrink: 0; margin-bottom: 0; }
-        .flex-group input { width: 80px; }
+        /* General Body Styles */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #000;
+        }
+
+        /* Main Chat Screen Container */
+        .chat-screen {
+            width: 100%;
+            max-width: 400px;
+            height: 800px;
+            background-color: #D0DEEB; /* Background color from the image */
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* Chat Header */
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #D0DEEB;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+
+        .chat-header__title {
+            margin: 0;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .chat-header__left,
+        .chat-header__right {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+
+        .chat-header__right span {
+            margin-left: 20px;
+        }
+
+        /* Chat Messages Area */
+        .chat-messages {
+            flex-grow: 1;
+            padding: 10px 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Individual Message Block */
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+            max-width: 80%;
+        }
+
+        /* Incoming Messages (from the other person) */
+        .message--incoming {
+            align-self: flex-start;
+        }
+
+        .message__avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #BCE3C1;
+            border-radius: 50%;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .message__author {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .message__content {
+            display: flex;
+            align-items: flex-end;
+        }
+        
+        /* Outgoing Messages (from you) */
+        .message--outgoing {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        /* Aligning timestamp for outgoing messages */
+        .message--outgoing .message__content {
+            flex-direction: row-reverse;
+        }
+
+        /* Message Bubbles */
+        .message__bubble {
+            padding: 10px 15px;
+            border-radius: 18px;
+            line-height: 1.4;
+        }
+
+        .message--incoming .message__bubble {
+            background-color: #FFFFFF;
+            border-top-left-radius: 0;
+        }
+
+        .message--outgoing .message__bubble {
+            background-color: #FFEC40; /* Yellow from the image */
+            border-top-right-radius: 0;
+        }
+        
+        /* Consecutive messages have smaller top margin */
+        .message--consecutive {
+            margin-top: -10px;
+        }
+
+        /* Timestamp Styling */
+        .message__time {
+            font-size: 0.75rem;
+            color: #888;
+            margin: 0 8px;
+            padding-bottom: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Special style for the "Do You" image message */
+        .message__bubble--image {
+            padding: 15px 25px;
+            background-color: #fff;
+        }
+
+        .message__handwritten {
+            font-family: 'Caveat', cursive;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>HTML 内容修改工具 (V2.0 专业版)</h1>
-        <div class="form-group">
-            <label for="htmlFileInput">1. 导入 HTML 文件</label>
-            <input type="file" id="htmlFileInput" accept=".html, .htm">
-        </div>
 
-        <!-- 全新：模式选择 -->
-        <div class="form-group">
-            <label for="targetingMode">2. 选择定位模式</label>
-            <select id="targetingMode">
-                <option value="css">CSS 选择器 (用于修改HTML结构)</option>
-                <option value="text">文本/正则表达式 (用于修改任意内容, 包括JS代码)</option>
-            </select>
-        </div>
+    <div class="chat-screen">
+        <header class="chat-header">
+            <div class="chat-header__left">←</div>
+            <h1 class="chat-header__title">此人用心不轨</h1>
+            <div class="chat-header__right">
+                <span><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg></span>
+                <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg></span>
+            </div>
+        </header>
 
-        <!-- CSS 选择器模式的字段 -->
-        <div id="cssModeFields">
-            <div class="form-group">
-                <label for="cssSelectorInput">3. 输入目标位置的 CSS 选择器</label>
-                <input type="text" id="cssSelectorInput" placeholder="例如: body, .content, #main-title">
+        <main class="chat-messages">
+            <!-- Message 1: Do You (Image) -->
+            <div class="message message--incoming">
+                <div class="message__avatar"></div>
+                <div class="message__text-group">
+                    <span class="message__author">此人用心不轨</span>
+                    <div class="message__content">
+                        <div class="message__bubble message__bubble--image">
+                            <span class="message__handwritten">Do You</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="modificationMode">4. 选择修改模式</label>
-                <select id="modificationMode">
-                    <option value="append">追加到目标末尾 (Append)</option>
-                    <option value="prepend">插入到目标开头 (Prepend)</option>
-                    <option value="replace">替换目标内容 (Replace Inner HTML)</option>
-                    <option value="before">插入到目标前面 (Insert Before)</option>
-                    <option value="after">插入到目标后面 (Insert After)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="cssNewContentInput">5. 输入要操作的新内容 (HTML/文本)</label>
-                <textarea id="cssNewContentInput" placeholder="在这里输入要添加或替换的 HTML 代码或文本"></textarea>
-            </div>
-        </div>
 
-        <!-- 文本/正则模式的字段 -->
-        <div id="textModeFields" style="display: none;">
-            <div class="form-group">
-                <label for="findInput">3. 查找内容 (支持正则表达式)</label>
-                <textarea id="findInput" placeholder="输入要查找的精确文本或正则表达式"></textarea>
+            <!-- Message 2: 我准备好了 -->
+            <div class="message message--incoming">
+                <div class="message__avatar" style="opacity: 0;"></div>
+                <div class="message__text-group">
+                    <div class="message__content">
+                        <div class="message__bubble">我准备好了</div>
+                        <span class="message__time">1:26 AM</span>
+                    </div>
+                </div>
             </div>
-            <div class="form-group flex-group">
-                <label for="regexFlagsInput">正则标志:</label>
-                <input type="text" id="regexFlagsInput" value="g" placeholder="g, s, i...">
-                <span class="info" style="margin:0;">(g:全局, s:换行匹配, i:忽略大小写)</span>
-            </div>
-            <div class="form-group">
-                <label for="replaceInput">4. 替换为 (支持 $1, $2 等捕获组)</label>
-                <textarea id="replaceInput" placeholder="输入替换后的内容。使用 $1, $2 引用正则表达式中的捕获组。"></textarea>
-            </div>
-        </div>
 
-        <div class="button-group">
-            <button id="modifyButton">执行修改</button>
-            <button id="downloadButton" disabled>下载修改后的文件</button>
-        </div>
-        <div id="messageArea"></div>
-        <p class="info">所有操作均在您的浏览器本地完成，文件不会上传至服务器。</p>
+            <!-- Message 3: 填好了没 -->
+            <div class="message message--outgoing">
+                <div class="message__content">
+                    <span class="message__time">1:26 AM</span>
+                    <div class="message__bubble">填好了没</div>
+                </div>
+            </div>
+            
+            <!-- Message 4: 填好了也准备好了 -->
+            <div class="message message--incoming">
+                <div class="message__avatar"></div>
+                <div class="message__text-group">
+                    <div class="message__content">
+                        <div class="message__bubble">填好了也准备好了</div>
+                        <span class="message__time">1:26 AM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message 5: 啊啊不好意思 -->
+            <div class="message message--outgoing">
+                <div class="message__content">
+                    <span class="message__time">1:26 AM</span>
+                    <div class="message__bubble">啊啊不好意思，发错问卷了🤷‍♀️</div>
+                </div>
+            </div>
+
+            <!-- Consecutive Outgoing Messages -->
+            <div class="message message--outgoing message--consecutive">
+                <div class="message__content">
+                    <div class="message__bubble">你就当没看到</div>
+                </div>
+            </div>
+            
+            <div class="message message--outgoing message--consecutive">
+                <div class="message__content">
+                    <div class="message__bubble">不是...</div>
+                </div>
+            </div>
+            
+            <div class="message message--outgoing message--consecutive">
+                <div class="message__content">
+                    <div class="message__bubble">??</div>
+                </div>
+            </div>
+            
+            <div class="message message--outgoing">
+                <div class="message__content">
+                    <span class="message__time">1:27 AM</span>
+                    <div class="message__bubble">这个问卷是这样填的？？</div>
+                </div>
+            </div>
+
+            <div class="message message--outgoing">
+                <div class="message__content">
+                    <span class="message__time">1:28 AM</span>
+                    <div class="message__bubble">你要毁了这份问卷调查吗？</div>
+                </div>
+            </div>
+        </main>
     </div>
-    <script>
-        let modifiedHtmlContent = null;
-        let originalFileName = 'modified_file.html';
 
-        const htmlFileInput = document.getElementById('htmlFileInput');
-        const targetingMode = document.getElementById('targetingMode');
-
-        // CSS 模式字段
-        const cssModeFields = document.getElementById('cssModeFields');
-        const cssSelectorInput = document.getElementById('cssSelectorInput');
-        const modificationMode = document.getElementById('modificationMode');
-        const cssNewContentInput = document.getElementById('cssNewContentInput');
-
-        // 文本模式字段
-        const textModeFields = document.getElementById('textModeFields');
-        const findInput = document.getElementById('findInput');
-        const regexFlagsInput = document.getElementById('regexFlagsInput');
-        const replaceInput = document.getElementById('replaceInput');
-
-        const modifyButton = document.getElementById('modifyButton');
-        const downloadButton = document.getElementById('downloadButton');
-        const messageArea = document.getElementById('messageArea');
-
-        // 切换模式时，显示/隐藏对应的输入框
-        targetingMode.addEventListener('change', () => {
-            if (targetingMode.value === 'css') {
-                cssModeFields.style.display = 'block';
-                textModeFields.style.display = 'none';
-            } else {
-                cssModeFields.style.display = 'none';
-                textModeFields.style.display = 'block';
-            }
-        });
-
-        htmlFileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                originalFileName = 'modified_' + file.name;
-                modifiedHtmlContent = null; 
-                downloadButton.disabled = true;
-                messageArea.innerHTML = '';
-            }
-        });
-
-        modifyButton.addEventListener('click', () => {
-            messageArea.innerHTML = '';
-            
-            const file = htmlFileInput.files[0];
-            if (!file && !modifiedHtmlContent) { 
-                showMessage('请先选择一个 HTML 文件。', 'error'); 
-                return; 
-            }
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const baseContent = modifiedHtmlContent || event.target.result;
-                try {
-                    // 根据选择的模式执行不同逻辑
-                    if (targetingMode.value === 'css') {
-                        executeCssModification(baseContent);
-                    } else {
-                        executeTextModification(baseContent);
-                    }
-                } catch (e) {
-                    showMessage(`处理失败：${e.message}`, 'error');
-                }
-            };
-            reader.onerror = () => showMessage('读取文件时发生错误。', 'error');
-            
-            if (!modifiedHtmlContent) {
-                reader.readAsText(file, 'UTF-8');
-            } else {
-                reader.onload({ target: { result: modifiedHtmlContent } });
-            }
-        });
-
-        function executeCssModification(baseContent) {
-            const selector = cssSelectorInput.value.trim();
-            const mode = modificationMode.value;
-            const newContent = cssNewContentInput.value;
-            if (!selector) { showMessage('请输入 CSS 选择器。', 'error'); return; }
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(baseContent, 'text/html');
-            const elements = doc.querySelectorAll(selector);
-
-            if (elements.length === 0) {
-                showMessage(`未找到匹配 CSS 选择器 "${selector}" 的元素。`, 'error');
-                return;
-            }
-
-            elements.forEach(element => {
-                switch (mode) {
-                    case 'append': element.insertAdjacentHTML('beforeend', newContent); break;
-                    case 'prepend': element.insertAdjacentHTML('afterbegin', newContent); break;
-                    case 'replace': element.innerHTML = newContent; break;
-                    case 'before': element.insertAdjacentHTML('beforebegin', newContent); break;
-                    case 'after': element.insertAdjacentHTML('afterend', newContent); break;
-                }
-            });
-            
-            modifiedHtmlContent = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
-            showMessage(`成功对 ${elements.length} 个元素执行了 [${mode}] 操作！可以再次修改或下载。`, 'success');
-            downloadButton.disabled = false;
-        }
-
-        function executeTextModification(baseContent) {
-            const findValue = findInput.value;
-            const flags = regexFlagsInput.value.trim();
-            const replaceValue = replaceInput.value;
-            if (!findValue) { showMessage('请输入要查找的内容。', 'error'); return; }
-
-            try {
-                const regex = new RegExp(findValue, flags);
-                const matches = baseContent.match(regex);
-                const matchCount = matches ? matches.length : 0;
-
-                if (matchCount === 0) {
-                    showMessage('未找到任何匹配项。', 'error');
-                    return;
-                }
-
-                modifiedHtmlContent = baseContent.replace(regex, replaceValue);
-                showMessage(`成功替换了 ${matchCount} 处匹配项！可以再次修改或下载。`, 'success');
-                downloadButton.disabled = false;
-
-            } catch (e) {
-                showMessage(`正则表达式错误：${e.message}`, 'error');
-            }
-        }
-
-        downloadButton.addEventListener('click', () => {
-            if (!modifiedHtmlContent) return;
-            const blob = new Blob([modifiedHtmlContent], { type: 'text/html;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = originalFileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-        });
-
-        function showMessage(text, type) {
-            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
-        }
-    </script>
 </body>
 </html>
