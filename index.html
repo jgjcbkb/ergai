@@ -2,72 +2,38 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    
-    <!-- ✨ 核心修正 1: 移动端全屏与Web App优化 ✨ -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- 告诉苹果Safari，这是一个Web App，可以全屏运行 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 设置添加到主屏幕后的标题 -->
     <meta name="apple-mobile-web-app-title" content="点九编辑器">
-    <!-- 设置状态栏样式 (时间、电量那一栏) -->
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <!-- (可选) 为应用添加一个图标，请替换为你自己的图标URL -->
-    <!-- <link rel="apple-touch-icon" href="your-icon-url.png"> -->
-
-    <!-- 安卓设备及现代浏览器的Web App Manifest -->
     <link rel="manifest" href="data:application/json;base64,ew0KICAibmFtZSI6ICL鐐逛節fvvIzkupTvvIkiLA0KICAic2hvcnRfbmFtZSI6ICL鐐逛節fvvIzkupQiLA0KICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwNCiAgInN0YXJ0X3VybCI6ICIuLyIsDQogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmMGYyZjUiLA0KICAidGhlbWVfY29sb3IiOiAiI2YwZjJmNSINCn0=">
-
-    <title>点九编辑器 Pro Max</title>
+    <title>点九编辑器 Pro Max (最终修正版)</title>
     <style>
         :root {
             --stretch-color: #3498db; --content-color: #2ecc71; --bg-color: #f0f2f5;
             --panel-color: #ffffff; --text-color: #333; --touch-threshold: 22px;
         }
         * { box-sizing: border-box; }
-        html, body {
-            overscroll-behavior: none; /* 禁止“拉到尽头”的果冻效果 */
-        }
+        html, body { overscroll-behavior: none; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0;
-            display: flex; flex-direction: column; 
-            
-            /* ✨ 核心修正 2: 使用动态视口高度，彻底解决遮挡问题 ✨ */
-            height: 100dvh; 
-            
-            overflow: hidden;
+            display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
         }
-        .main-content {
-            flex-grow: 1; display: flex; justify-content: center; align-items: center;
-            overflow: hidden; background-color: #7f8c8d; position: relative;
-        }
+        .main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; background-color: #7f8c8d; position: relative; }
         #canvas-wrapper { position: relative; touch-action: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         canvas {
-            display: block;
-            background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%),
-                              linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
+            display: block; background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
             background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
         }
-        .bottom-section {
-            background-color: var(--bg-color); padding-top: 10px;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.05); flex-shrink: 0; overflow-y: auto; 
-            /* 确保在刘海屏等设备上，底部有安全边距 */
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        .info-panel {
-            background-color: var(--panel-color); margin: 0 10px 10px 10px;
-            padding: 8px 15px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-        .info-section { margin-bottom: 5px; }
-        .info-section:last-child { margin-bottom: 0; }
+        .bottom-section { background-color: var(--bg-color); padding-top: 10px; box-shadow: 0 -2px 8px rgba(0,0,0,0.05); flex-shrink: 0; overflow-y: auto; max-height: 45%; padding-bottom: env(safe-area-inset-bottom); }
+        .info-panel { background-color: var(--panel-color); margin: 0 10px 10px 10px; padding: 8px 15px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .info-section { margin-bottom: 5px; } .info-section:last-child { margin-bottom: 0; }
         .info-section h4 { margin: 5px 0; font-size: 14px; font-weight: 600; }
-        .info-section:nth-of-type(2) h4 { color: var(--stretch-color); }
-        .info-section:nth-of-type(3) h4 { color: var(--content-color); }
+        .info-section:nth-of-type(2) h4 { color: var(--stretch-color); } .info-section:nth-of-type(3) h4 { color: var(--content-color); }
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 2px 10px; font-size: 13px; }
         .info-grid-item { display: flex; justify-content: space-between; align-items: center; }
-        .info-grid-item .label { color: #666; }
-        .info-grid-item .value { font-weight: 500; color: var(--text-color); }
+        .info-grid-item .label { color: #666; } .info-grid-item .value { font-weight: 500; color: var(--text-color); }
         .control-panel { background-color: var(--panel-color); padding: 10px; border-top: 1px solid #eee; }
         .mode-selector { display: flex; justify-content: space-around; margin-bottom: 10px; }
         .mode-btn { background: none; border: none; padding: 10px; font-size: 16px; color: #888; cursor: pointer; position: relative; transition: color 0.2s; }
@@ -79,19 +45,14 @@
         .actions button:disabled { color: #ccc; cursor: not-allowed; }
         .actions svg { width: 24px; height: 24px; margin-bottom: 4px; }
         #file-input { display: none; }
-        
         .side-selector, .stretch-line-selector { display: flex; flex-direction: column; align-items: center; }
         .side-selector legend, .stretch-line-selector legend { font-size: 12px; margin-bottom: 5px; color: #555; font-weight: bold; }
         .side-options { display: flex; gap: 5px; }
         .side-options label { font-size: 12px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 15px; cursor: pointer; transition: all 0.2s; }
         .side-options input { display: none; }
         .side-options input:checked + label { background-color: var(--stretch-color); color: white; border-color: var(--stretch-color); }
-        
         .stretch-line-options { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .stretch-line-options button {
-            font-size: 12px; padding: 6px 10px; border: 1px solid #ddd;
-            border-radius: 15px; cursor: pointer; transition: all 0.2s; background-color: #f5f5f5;
-        }
+        .stretch-line-options button { font-size: 12px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 15px; cursor: pointer; transition: all 0.2s; background-color: #f5f5f5; }
         .stretch-line-options button.active { background-color: var(--stretch-color); color: white; border-color: var(--stretch-color); }
         #placeholder { color: #aaa; text-align: center; }
         #preview-window { display: none; position: fixed; bottom: 20px; right: 20px; width: 90%; max-width: 320px; background-color: var(--panel-color); border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 100; overflow: hidden; }
@@ -111,10 +72,11 @@
         .modal-content { background-color: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; text-align: left; }
         .modal-content h3 { margin-top: 0; text-align: center; }
         .modal-content .input-group { margin-bottom: 15px; }
+        .modal-content .input-group legend { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
         .modal-content label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500; }
         .modal-content input, .modal-content textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
         .modal-content textarea { min-height: 60px; resize: vertical; }
-        .modal-content .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .modal-content .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         .modal-actions button { padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
         .modal-actions .btn-primary { background-color: #2ecc71; color: white; }
@@ -124,7 +86,6 @@
     </style>
 </head>
 <body>
-    <!-- The rest of the HTML structure is unchanged -->
     <div class="main-content">
         <div id="canvas-wrapper"><canvas id="editor-canvas"></canvas></div>
         <div id="placeholder"><h2>请选择一张图片</h2><p>点击下方“打开”按钮开始</p></div>
@@ -138,10 +99,8 @@
                 <div class="stretch-line-selector" id="stretch-line-controls" style="display: none;">
                     <legend>拉伸线</legend>
                     <div class="stretch-line-options">
-                        <button class="line-control-btn" data-line="top">上</button>
-                        <button class="line-control-btn" data-line="bottom">下</button>
-                        <button class="line-control-btn" data-line="left">左</button>
-                        <button class="line-control-btn" data-line="right">右</button>
+                        <button class="line-control-btn" data-line="top">上</button> <button class="line-control-btn" data-line="bottom">下</button>
+                        <button class="line-control-btn" data-line="left">左</button> <button class="line-control-btn" data-line="right">右</button>
                     </div>
                 </div>
                 <div class="actions"></div>
@@ -153,18 +112,16 @@
         <div class="content">
             <div id="preview-container"><div id="preview-box"><div id="preview-content-area"></div></div></div>
             <div class="preview-controls">
-                <div class="slider-group"><label for="width-slider">左右拉伸:</label><input type="range" id="width-slider" min="50" max="500" value="150"></div>
-                <div class="slider-group"><label for="height-slider">上下拉伸:</label><input type="range" id="height-slider" min="50" max="500" value="100"></div>
+                <div class="slider-group"><label for="width-slider">左右拉伸:</label><input type="range" id="width-slider"></div>
+                <div class="slider-group"><label for="height-slider">上下拉伸:</label><input type="range" id="height-slider"></div>
                 <div class="checkbox-group"><input type="checkbox" id="show-content-checkbox"><label for="show-content-checkbox">显示内容区域</label></div>
             </div>
         </div>
     </div>
     <div id="download-modal" class="modal"></div>
     <script>
-        // The entire JS code is unchanged from the previous correct version,
-        // as the fixes are purely in the HTML <head> and CSS.
-        // I'm pasting it here in full to ensure you have a complete, single file.
     document.addEventListener('DOMContentLoaded', () => {
+        // All const declarations
         const canvas = document.getElementById('editor-canvas'); const ctx = canvas.getContext('2d');
         const placeholder = document.getElementById('placeholder'); const infoPanel = document.getElementById('info-panel');
         const previewWindow = document.getElementById('preview-window'); const previewBox = document.getElementById('preview-box');
@@ -174,10 +131,11 @@
         const modal = document.getElementById('download-modal');
         const stretchLineControls = document.getElementById('stretch-line-controls');
 
+        // Dynamic HTML injection
         document.querySelector('.mode-selector').innerHTML = `<button class="mode-btn active" data-mode="stretch">拉伸区域</button><button class="mode-btn" data-mode="content">内容区域</button>`;
         document.querySelector('.side-selector').innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
         document.querySelector('.actions').innerHTML = `<label for="file-input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
-        modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="input-group"><label for="image-url-input">图片公开URL:</label><input type="url" id="image-url-input" placeholder="https://example.com/image.png"></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息，用于测试拉伸效果。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息，用于测试拉伸效果和翻转。</textarea></div><div class="modal-actions"><button id="download-ephone-css-btn" class="btn-tertiary">下载 EPhone 样式 (.txt)</button><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
+        modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="input-group"><label for="image-url-input">图片公开URL:</label><input type="url" id="image-url-input" placeholder="https://example.com/image.png"></div><div class="input-group"><legend>EPhone 样式选项</legend><div class="grid-2"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="side-options" style="justify-content: center; margin-top: 10px;"><input type="radio" name="ephone-target" value="ai" id="ephone-ai"><label for="ephone-ai">仅 AI (左)</label><input type="radio" name="ephone-target" value="user" id="ephone-user"><label for="ephone-user">仅 User (右)</label><input type="radio" name="ephone-target" value="both" id="ephone-both" checked><label for="ephone-both">两者都</label></div></div><div class="input-group"><legend>HTML 演示选项</legend><div class="grid-2"><div class="input-group"><label for="left-text-input">左侧文字:</label><textarea id="left-text-input">左侧短消息</textarea></div><div class="input-group"><label for="right-text-input">右侧文字:</label><textarea id="right-text-input">右侧短消息</textarea></div></div></div><div class="modal-actions"><button id="download-ephone-css-btn" class="btn-tertiary">下载 EPhone 样式 (.txt)</button><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
         infoPanel.innerHTML = `<div class="info-section"><div class="info-grid"><div class="info-grid-item"><span class="label">图像尺寸:</span><span class="value" id="img-size"></span></div></div></div><div class="info-section"><h4>拉伸区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左/右:</span><span class="value" id="stretch-horiz"></span></div><div class="info-grid-item"><span class="label">上/下:</span><span class="value" id="stretch-vert"></span></div></div></div><div class="info-section"><h4>内容区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左:</span><span class="value" id="content-left"></span></div><div class="info-grid-item"><span class="label">右:</span><span class="value" id="content-right"></span></div><div class="info-grid-item"><span class="label">上:</span><span class="value" id="content-top"></span></div><div class="info-grid-item"><span class="label">下:</span><span class="value" id="content-bottom"></span></div></div></div>`;
 
         let originalImage = null, originalFileName = '', currentMode = 'stretch';
@@ -213,18 +171,69 @@
             events.up.forEach(e => window.addEventListener(e, onUp, { passive: false }));
             stretchLineControls.addEventListener('click', (e) => {
                 const btn = e.target.closest('.line-control-btn');
-                if (btn) {
-                    toggleStretchLine(btn.dataset.line);
-                }
+                if (btn) { toggleStretchLine(btn.dataset.line); }
             });
         }
         
-        function toggleStretchLine(line) { if (!originalImage) return; const w = originalImage.width; const h = originalImage.height; const s = regions.stretch; const isVertical = line === 'top' || line === 'bottom'; const isHorizontal = line === 'left' || line === 'right'; if ((isVertical && s.top !== null) || (isHorizontal && s.left !== null)) { if (isVertical) { s.top = s.bottom = null; } if (isHorizontal) { s.left = s.right = null; } } else { if (isVertical) { s.top = h * 0.25; s.bottom = h * 0.75; } if (isHorizontal) { s.left = w * 0.25; s.right = w * 0.75; } } redrawAll(); updateInfoPanel(); updatePreview(); }
-        function setupPreview(image) { const maxPreviewDim = 280; let initialWidth, initialHeight; const ratio = image.width / image.height; if (ratio > 1) { initialWidth = Math.min(image.width, maxPreviewDim); initialHeight = initialWidth / ratio; } else { initialHeight = Math.min(image.height, maxPreviewDim); initialWidth = initialHeight * ratio; } initialWidth = Math.round(initialWidth); initialHeight = Math.round(initialHeight); widthSlider.min = initialWidth; widthSlider.max = 500; widthSlider.value = initialWidth; heightSlider.min = initialHeight; heightSlider.max = 500; heightSlider.value = initialHeight; previewBox.style.width = `${initialWidth}px`; previewBox.style.height = `${initialHeight}px`; }
-        function handleFileSelect(e) { const file = e.target.files[0]; if (!file) return; originalFileName = file.name; const reader = new FileReader(); reader.onload = event => { originalImage = new Image(); originalImage.onload = () => { placeholder.style.display = 'none'; canvas.style.display = 'block'; stretchLineControls.style.display = 'flex'; setupCanvas(); resetRegions('all'); redrawAll(); updateInfoPanel(); infoPanel.style.display = 'block'; document.getElementById('clear-btn').disabled = false; document.getElementById('download-trigger-btn').disabled = false; togglePreviewBtn.disabled = false; setupPreview(originalImage); updatePreview(); }; originalImage.src = event.target.result; }; reader.readAsDataURL(file); }
+        function toggleStretchLine(line) {
+            if (!originalImage) return;
+            const w = originalImage.width; const h = originalImage.height; const s = regions.stretch;
+            const isVertical = line === 'top' || line === 'bottom';
+            const isHorizontal = line === 'left' || line === 'right';
+            if ((isVertical && s.top !== null) || (isHorizontal && s.left !== null)) {
+                if (isVertical) { s.top = s.bottom = null; }
+                if (isHorizontal) { s.left = s.right = null; }
+            } else {
+                if (isVertical) { s.top = h * 0.25; s.bottom = h * 0.75; }
+                if (isHorizontal) { s.left = w * 0.25; s.right = w * 0.75; }
+            }
+            redrawAll(); updateInfoPanel(); updatePreview();
+        }
+
+        function setupPreview(image) {
+            const maxPreviewDim = 280; let initialWidth, initialHeight;
+            const ratio = image.width / image.height;
+            if (ratio > 1) { initialWidth = Math.min(image.width, maxPreviewDim); initialHeight = initialWidth / ratio; } 
+            else { initialHeight = Math.min(image.height, maxPreviewDim); initialWidth = initialHeight * ratio; }
+            initialWidth = Math.round(initialWidth); initialHeight = Math.round(initialHeight);
+            widthSlider.min = initialWidth; widthSlider.max = 500; widthSlider.value = initialWidth;
+            heightSlider.min = initialHeight; heightSlider.max = 500; heightSlider.value = initialHeight;
+            previewBox.style.width = `${initialWidth}px`; previewBox.style.height = `${initialHeight}px`;
+        }
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0]; if (!file) return;
+            originalFileName = file.name; const reader = new FileReader();
+            reader.onload = event => {
+                originalImage = new Image();
+                originalImage.onload = () => {
+                    placeholder.style.display = 'none'; canvas.style.display = 'block';
+                    stretchLineControls.style.display = 'flex';
+                    setupCanvas(); resetRegions('all'); redrawAll(); updateInfoPanel();
+                    infoPanel.style.display = 'block';
+                    document.getElementById('clear-btn').disabled = false;
+                    document.getElementById('download-trigger-btn').disabled = false;
+                    togglePreviewBtn.disabled = false;
+                    setupPreview(originalImage); updatePreview();
+                }; originalImage.src = event.target.result;
+            }; reader.readAsDataURL(file);
+        }
+
         function onMove(e) { if (!isDragging || !draggingLine) return; e.preventDefault(); const pos = getEventPos(e); const r = regions[currentMode]; const w = originalImage.width; const h = originalImage.height; if (draggingLine === 'top') r.top = Math.max(0, Math.min(pos.y, r.bottom ?? h)); else if (draggingLine === 'bottom') r.bottom = Math.min(h, Math.max(pos.y, r.top ?? 0)); else if (draggingLine === 'left') r.left = Math.max(0, Math.min(pos.x, r.right ?? w)); else if (draggingLine === 'right') r.right = Math.min(w, Math.max(pos.x, r.left ?? 0)); redrawAll(); updateInfoPanel(); updatePreview(); }
         function updateLineButtons() { if (!originalImage) return; document.querySelector('.line-control-btn[data-line="top"]').classList.toggle('active', regions.stretch.top !== null); document.querySelector('.line-control-btn[data-line="bottom"]').classList.toggle('active', regions.stretch.top !== null); document.querySelector('.line-control-btn[data-line="left"]').classList.toggle('active', regions.stretch.left !== null); document.querySelector('.line-control-btn[data-line="right"]').classList.toggle('active', regions.stretch.left !== null); }
-        let populatedSpans = {}; function updateInfoPanel() { if (!populatedSpans.imgSize) { populatedSpans = { imgSize: document.getElementById('img-size'), stretch: { horiz: document.getElementById('stretch-horiz'), vert: document.getElementById('stretch-vert') }, content: { top: document.getElementById('content-top'), bottom: document.getElementById('content-bottom'), left: document.getElementById('content-left'), right: document.getElementById('content-right') } }; } if (!originalImage) return; populatedSpans.imgSize.textContent = `${originalImage.width} x ${originalImage.height} px`; const s = regions.stretch; populatedSpans.stretch.horiz.textContent = (s.left !== null) ? `${Math.round(s.left)} - ${Math.round(s.right)}` : '固定'; populatedSpans.stretch.vert.textContent = (s.top !== null) ? `${Math.round(s.top)} - ${Math.round(s.bottom)}` : '固定'; const c = regions.content; ['top', 'bottom', 'left', 'right'].forEach(line => { populatedSpans.content[line].textContent = c[line] !== null ? Math.round(c[line]) : 'N/A'; }); }
+        let populatedSpans = {};
+        function updateInfoPanel() {
+            if (!populatedSpans.imgSize) {
+                populatedSpans = { imgSize: document.getElementById('img-size'), stretch: { horiz: document.getElementById('stretch-horiz'), vert: document.getElementById('stretch-vert') }, content: { top: document.getElementById('content-top'), bottom: document.getElementById('content-bottom'), left: document.getElementById('content-left'), right: document.getElementById('content-right') } };
+            }
+            if (!originalImage) return;
+            populatedSpans.imgSize.textContent = `${originalImage.width} x ${originalImage.height} px`;
+            const s = regions.stretch;
+            populatedSpans.stretch.horiz.textContent = (s.left !== null) ? `${Math.round(s.left)} - ${Math.round(s.right)}` : '固定';
+            populatedSpans.stretch.vert.textContent = (s.top !== null) ? `${Math.round(s.top)} - ${Math.round(s.bottom)}` : '固定';
+            const c = regions.content;
+            ['top', 'bottom', 'left', 'right'].forEach(line => { populatedSpans.content[line].textContent = c[line] !== null ? Math.round(c[line]) : 'N/A'; });
+        }
         function updatePreview() { if (!originalImage) return; const { width: w, height: h } = originalImage; const sr = regions.stretch; const cr = regions.content; const slice = { top: (sr.top !== null) ? Math.round(sr.top) : 0, right: (sr.left !== null) ? Math.round(w - sr.right) : 0, bottom: (sr.top !== null) ? Math.round(h - sr.bottom) : 0, left: (sr.left !== null) ? Math.round(sr.left) : 0 }; const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100)); const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) }; const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 }; previewBox.style.borderImageSource = `url('${originalImage.src}')`; previewBox.style.borderImageSlice = `${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill`; previewBox.style.borderImageWidth = `${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px`; previewContentArea.style.top = `${padding.top}px`; previewContentArea.style.right = `${padding.right}px`; previewContentArea.style.bottom = `${padding.bottom}px`; previewContentArea.style.left = `${padding.left}px`; widthSlider.disabled = (sr.left === null); heightSlider.disabled = (sr.top === null); }
         function setupCanvas() { canvas.width = originalImage.width + 2; canvas.height = originalImage.height + 2; }
         function resetRegions(mode = 'all') { const w = originalImage.width; const h = originalImage.height; if (mode === 'all' || mode === 'stretch') { regions.stretch = { top: h * 0.25, bottom: h * 0.75, left: w * 0.25, right: w * 0.75 }; } if (mode === 'all' || mode === 'content') { regions.content = { top: h * 0.25, bottom: h * 0.75, left: w * 0.25, right: w * 0.75 }; } }
@@ -235,10 +244,121 @@
         function onDown(e) { if (!originalImage) return; e.preventDefault(); const pos = getEventPos(e); const r = regions[currentMode]; const threshold = TOUCH_THRESHOLD / scale; const dists = {}; if(r.top !== null) dists.top = Math.abs(pos.y - r.top); if(r.bottom !== null) dists.bottom = Math.abs(pos.y - r.bottom); if(r.left !== null) dists.left = Math.abs(pos.x - r.left); if(r.right !== null) dists.right = Math.abs(pos.x - r.right); let min_dist = Infinity; let closest_line = null; for (const [line, dist] of Object.entries(dists)) { if (dist < min_dist) { min_dist = dist; closest_line = line; } } if (min_dist < threshold) { isDragging = true; draggingLine = closest_line; } }
         function onUp() { isDragging = false; draggingLine = null; }
         function downloadImage() { if (!originalImage) return; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(originalImage, 1, 1); drawNinePatchBorders(); const link = document.createElement('a'); const nameParts = originalFileName.split('.'); const extension = nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = canvas.toDataURL('image/png'); link.click(); redrawAll(); modal.style.display = 'none'; }
-        function generateHtmlCode(imageUrl, leftText, rightText) { if (!originalImage) return ''; const { width: w, height: h } = originalImage; const sr = regions.stretch; const cr = regions.content; const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null; const slice = { top: stretchVert ? Math.round(sr.top) : 0, right: stretchHoriz ? Math.round(w - sr.right) : 0, bottom: stretchVert ? Math.round(h - sr.bottom) : 0, left: stretchHoriz ? Math.round(sr.left) : 0 }; const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100)); const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) }; const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 }; const selectedSide = document.querySelector('input[name="side"]:checked').value; let fixedStyles = ''; if (!stretchVert) { fixedStyles += `height: ${Math.round(h / scaleFactor)}px; display: flex; align-items: center; `; } if (!stretchHoriz) { fixedStyles += `width: ${Math.round(w / scaleFactor)}px; `; } if (stretchHoriz && !stretchVert) { fixedStyles += 'white-space: nowrap; '; } else { fixedStyles += 'word-wrap: break-word; '; } const baseStyle = `max-width: 80%; width: fit-content; line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; border-image-source: url('${imageUrl}'); color: #000; ${fixedStyles}`; const originalBubbleStyle = `border-image-slice: ${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill; border-image-width: ${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px; padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;`; let leftStyle, rightStyle, leftBubbleClass, rightBubbleClass; if (selectedSide === 'left') { leftBubbleClass = 'bubble left'; rightBubbleClass = 'bubble right'; leftStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${originalBubbleStyle} }`; rightStyle = `.bubble.right { align-self: flex-end; ${baseStyle} ${originalBubbleStyle} transform: scaleX(-1); }`; } else if (selectedSide === 'right') { leftBubbleClass = 'bubble left'; rightBubbleClass = 'bubble right'; rightStyle = `.bubble.right { align-self: flex-end; ${baseStyle} ${originalBubbleStyle} }`; leftStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${originalBubbleStyle} transform: scaleX(-1); }`; } else { leftBubbleClass = 'bubble center'; rightBubbleClass = 'bubble center'; leftStyle = `.bubble.center { align-self: center; ${baseStyle} ${originalBubbleStyle} }`; rightStyle = ''; } const leftTransformStyle = (selectedSide === 'right') ? `.bubble.left .content-wrapper { transform: scaleX(-1); text-align: left; }` : `.bubble.left .content-wrapper { text-align: left; }`; const rightTransformStyle = (selectedSide === 'left') ? `.bubble.right .content-wrapper { transform: scaleX(-1); text-align: left; }` : `.bubble.right .content-wrapper { text-align: left; }`; const centerTransformStyle = `.bubble.center .content-wrapper { text-align: left; }`; const transformStyle = selectedSide === 'center' ? centerTransformStyle : leftTransformStyle + rightTransformStyle; return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: sans-serif; padding: 40px; } .chat-container { max-width: 700px; margin: auto; display: flex; flex-direction: column; gap: 30px; } ${leftStyle} ${rightStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText}</div></div></div></body></html>`; };
-        function downloadCode() { const imageUrl = document.getElementById('image-url-input').value; const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value; if (!imageUrl) { alert('请输入图片的公开URL链接！'); document.getElementById('image-url-input').focus(); return; } const code = generateHtmlCode(imageUrl, leftText, rightText); const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
-        function generateEphoneCss(imageUrl, bubbleName, aiColor, userColor) { if (!originalImage) return ''; const { width: w, height: h } = originalImage; const sr = regions.stretch; const cr = regions.content; const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null; const slice = { top: stretchVert ? Math.round(sr.top) : 0, right: stretchHoriz ? Math.round(w - sr.right) : 0, bottom: stretchVert ? Math.round(h - sr.bottom) : 0, left: stretchHoriz ? Math.round(sr.left) : 0 }; const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100)); const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) }; const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 }; const selectedSide = document.querySelector('input[name="side"]:checked').value; const finalSlice = `${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill`; let css = `/*\n * =======================================================\n *   气泡样式: ${bubbleName}\n *   - 作者: 酱酱\n *   - 声明: 所有素材均来自于本人，禁止二传二改\n * =======================================================\n*/\n\n.message-bubble.user .content,\n.message-bubble.ai .content {\n    background: transparent !important;\n    border: none !important;\n    border-radius: 0 !important;\n    box-shadow: none !important;\n    backdrop-filter: none !important;\n    -webkit-backdrop-filter: none !important;\n    position: relative;\n    z-index: 1;\n}\n\n.message-bubble.user .content::before,\n.message-bubble.ai .content::before {\n    content: '';\n    position: absolute;\n    top: 0; left: 0; right: 0; bottom: 0;\n    z-index: -1;\n    border-image-source: url('${imageUrl}');\n    border-style: solid;\n}\n`; const finalWidth = `${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px`; const originalPadding = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`; const flippedPadding = `${padding.top}px ${padding.left}px ${padding.bottom}px ${padding.right}px`; if (selectedSide === 'left') { css += `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; }\n.message-bubble.ai .content { padding: ${originalPadding}; color: ${aiColor}; }\n\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; transform: scaleX(-1); }\n.message-bubble.user .content { padding: ${flippedPadding}; color: ${userColor}; transform: none; }\n`; } else if (selectedSide === 'right') { css += `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; }\n.message-bubble.user .content { padding: ${originalPadding}; color: ${userColor}; }\n\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; transform: scaleX(-1); }\n.message-bubble.ai .content { padding: ${flippedPadding}; color: ${aiColor}; transform: none; }\n`; } else { css += `\n/* --- 用户与AI气泡 (居中) --- */\n.message-bubble.user .content::before, .message-bubble.ai .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; }\n.message-bubble.user .content { padding: ${originalPadding}; color: ${userColor}; }\n.message-bubble.ai .content { padding: ${originalPadding}; color: ${aiColor}; }\n`; } return css; }
-        async function downloadEphoneCss() { const imageUrl = document.getElementById('image-url-input').value; const aiColor = document.getElementById('ai-color-input').value; const userColor = document.getElementById('user-color-input').value; if (!imageUrl) { alert('请输入图片的公开URL链接！'); document.getElementById('image-url-input').focus(); return; } const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", originalFileName.split('.')[0] || "我的气泡"); resolve(name); }); if (!bubbleName || !bubbleName.trim()) { alert("已取消下载。"); return; } const code = generateEphoneCss(imageUrl, bubbleName.trim(), aiColor, userColor); const blob = new Blob([code], { type: 'text/plain' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${bubbleName.trim()}-EPhone-Style.txt`; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; }
+        
+        // ✨✨✨ CORE LOGIC REBUILT FROM HERE ✨✨✨
+        
+        function generateHtmlCode(imageUrl, leftText, rightText) {
+            if (!originalImage) return '';
+            const { width: w, height: h } = originalImage; const sr = regions.stretch; const cr = regions.content;
+            
+            const stretchVert = sr.top !== null;
+            const stretchHoriz = sr.left !== null;
+
+            const slice = {
+                top: stretchVert ? Math.round(sr.top) : 0,
+                right: stretchHoriz ? Math.round(w - sr.right) : 0,
+                bottom: stretchVert ? Math.round(h - sr.bottom) : 0,
+                left: stretchHoriz ? Math.round(sr.left) : 0
+            };
+            const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100));
+            const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
+            const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
+            
+            let fixedStyles = '';
+            if (!stretchVert) { fixedStyles += `height: ${Math.round(h / scaleFactor)}px; display: flex; align-items: center; `; }
+            if (!stretchHoriz) { fixedStyles += `width: ${Math.round(w / scaleFactor)}px; `; }
+            
+            let contentWrapperStyles = 'word-wrap: break-word; text-align: left;';
+            if (!stretchVert && stretchHoriz) { // Horizontal stretch only
+                 contentWrapperStyles += ' white-space: nowrap;';
+            }
+             if (!stretchHoriz) { // Vertical stretch or no stretch
+                 contentWrapperStyles += ' width: 100%;';
+            }
+
+            const baseStyle = `max-width: 80%; width: fit-content; line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; border-image-source: url('${imageUrl}'); ${fixedStyles}`;
+            const originalBubbleStyle = `border-image-slice: ${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill; border-image-width: ${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px; padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;`;
+            
+            const selectedSide = document.querySelector('input[name="side"]:checked').value;
+            let leftStyle, rightStyle, leftBubbleClass, rightBubbleClass;
+            
+            if (selectedSide === 'left') { leftBubbleClass = 'bubble left'; rightBubbleClass = 'bubble right'; leftStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${originalBubbleStyle} }`; rightStyle = `.bubble.right { align-self: flex-end; ${baseStyle} ${originalBubbleStyle} transform: scaleX(-1); }`; } 
+            else if (selectedSide === 'right') { leftBubbleClass = 'bubble left'; rightBubbleClass = 'bubble right'; rightStyle = `.bubble.right { align-self: flex-end; ${baseStyle} ${originalBubbleStyle} }`; leftStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${originalBubbleStyle} transform: scaleX(-1); }`; } 
+            else { leftBubbleClass = 'bubble center'; rightBubbleClass = 'bubble center'; leftStyle = `.bubble.center { align-self: center; ${baseStyle} ${originalBubbleStyle} }`; rightStyle = ''; }
+            
+            const leftTransformStyle = (selectedSide === 'right') ? `.bubble.left .content-wrapper { transform: scaleX(-1); }` : ``;
+            const rightTransformStyle = (selectedSide === 'left') ? `.bubble.right .content-wrapper { transform: scaleX(-1); }` : ``;
+            const transformStyle = `.content-wrapper { ${contentWrapperStyles} } ${leftTransformStyle} ${rightTransformStyle}`;
+            
+            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: sans-serif; padding: 40px; } .chat-container { max-width: 700px; margin: auto; display: flex; flex-direction: column; gap: 30px; } ${leftStyle} ${rightStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText}</div></div></div></body></html>`;
+        };
+        
+        function downloadCode() {
+            const imageUrl = document.getElementById('image-url-input').value;
+            const leftText = document.getElementById('left-text-input').value;
+            const rightText = document.getElementById('right-text-input').value;
+            if (!imageUrl) { alert('请输入图片的公开URL链接！'); document.getElementById('image-url-input').focus(); return; }
+            const code = generateHtmlCode(imageUrl, leftText, rightText); const blob = new Blob([code], { type: 'text/html' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html';
+            link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none';
+        };
+
+        function generateEphoneCss(imageUrl, bubbleName, aiColor, userColor, target) {
+            if (!originalImage) return '';
+            const { width: w, height: h } = originalImage; const sr = regions.stretch; const cr = regions.content;
+            const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null;
+            const slice = { top: stretchVert ? Math.round(sr.top) : 0, right: stretchHoriz ? Math.round(w - sr.right) : 0, bottom: stretchVert ? Math.round(h - sr.bottom) : 0, left: stretchHoriz ? Math.round(sr.left) : 0 };
+            const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100));
+            const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
+            const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
+            const selectedSide = document.querySelector('input[name="side"]:checked').value;
+            const finalSlice = `${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill`;
+            const finalWidth = `${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px`;
+            const originalPadding = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
+            const flippedPadding = `${padding.top}px ${padding.left}px ${padding.bottom}px ${padding.right}px`;
+
+            let css = `/*\n * =======================================================\n *   气泡样式: ${bubbleName}\n *   - 作者: 酱酱\n *   - 声明: 所有素材均来自于本人，禁止二传二改\n * =======================================================\n*/\n`;
+            
+            if (target === 'both') {
+                 css += `\n.message-bubble.user .content,\n.message-bubble.ai .content {\n    background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; position: relative; z-index: 1;\n}\n\n.message-bubble.user .content::before,\n.message-bubble.ai .content::before {\n    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-image-source: url('${imageUrl}'); border-style: solid;\n}\n`;
+            } else {
+                 const targetClass = target === 'ai' ? '.ai' : '.user';
+                 css += `\n.message-bubble${targetClass} .content {\n    background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; position: relative; z-index: 1;\n}\n\n.message-bubble${targetClass} .content::before {\n    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-image-source: url('${imageUrl}'); border-style: solid;\n}\n`;
+            }
+
+            let aiCss = '', userCss = '';
+            if (selectedSide === 'left') {
+                aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; }\n.message-bubble.ai .content { padding: ${originalPadding}; color: ${aiColor}; }\n`;
+                userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; transform: scaleX(-1); }\n.message-bubble.user .content { padding: ${flippedPadding}; color: ${userColor}; transform: none; }\n`;
+            } else if (selectedSide === 'right') {
+                userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; }\n.message-bubble.user .content { padding: ${originalPadding}; color: ${userColor}; }\n`;
+                aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; transform: scaleX(-1); }\n.message-bubble.ai .content { padding: ${flippedPadding}; color: ${aiColor}; transform: none; }\n`;
+            } else { // Center
+                const centerCss = `\n/* --- 用户与AI气泡 (居中) --- */\n.message-bubble.user .content::before, .message-bubble.ai .content::before { border-image-slice: ${finalSlice}; border-image-width: ${finalWidth}; }\n.message-bubble.user .content { padding: ${originalPadding}; color: ${userColor}; }\n.message-bubble.ai .content { padding: ${originalPadding}; color: ${aiColor}; }\n`;
+                aiCss = userCss = centerCss;
+            }
+
+            if (target === 'ai') css += aiCss;
+            else if (target === 'user') css += userCss;
+            else css += aiCss + userCss;
+            
+            return css;
+        }
+
+        async function downloadEphoneCss() { 
+            const imageUrl = document.getElementById('image-url-input').value; 
+            const aiColor = document.getElementById('ai-color-input').value; 
+            const userColor = document.getElementById('user-color-input').value;
+            const target = document.querySelector('input[name="ephone-target"]:checked').value;
+            if (!imageUrl) { alert('请输入图片的公开URL链接！'); document.getElementById('image-url-input').focus(); return; } 
+            const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", originalFileName.split('.')[0] || "我的气泡"); resolve(name); }); 
+            if (!bubbleName || !bubbleName.trim()) { alert("已取消下载。"); return; } 
+            const code = generateEphoneCss(imageUrl, bubbleName.trim(), aiColor, userColor, target); 
+            const blob = new Blob([code], { type: 'text/plain' }); 
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); 
+            link.download = `${bubbleName.trim()}-EPhone-Style.txt`; 
+            link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; 
+        }
 
         init();
         window.addEventListener('resize', redrawAll);
