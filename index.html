@@ -175,9 +175,13 @@
             ai: { image: null, regions: { stretch: { top: null, bottom: null, left: null, right: null }, content: {} }, fileName: '' },
             user: { image: null, regions: { stretch: { top: null, bottom: null, left: null, right: null }, content: {} }, fileName: '' }
         };
-        let activeEditor = 'ai'; let currentMode = 'stretch';
+        let activeEditor = 'ai';
+        let currentMode = 'stretch';
         let isDragging = false, draggingLine = null, scale = 1;
-        const TOUCH_THRESHOLD = 22; const togglePreviewBtn = document.getElementById('toggle-preview-btn');
+        const TOUCH_THRESHOLD = 22;
+        const togglePreviewBtn = document.getElementById('toggle-preview-btn');
+
+        // ✨ CORE FIX: All functions are now in the global scope of the DOMContentLoaded listener ✨
 
         function init() {
             document.getElementById('file-input-ai').addEventListener('change', (e) => handleFileSelect(e, 'ai'));
@@ -224,7 +228,6 @@
                     if (editor === activeEditor) {
                         updateEditorState();
                     }
-                    // Auto-update side selector state
                     const hasAi = !!configurations.ai.image;
                     const hasUser = !!configurations.user.image;
                     sideSelectorFieldset.disabled = (hasAi && hasUser);
@@ -235,7 +238,23 @@
         }
 
         function updateEditorState() { const config = configurations[activeEditor]; if (config.image) { placeholder.style.display = 'none'; canvas.style.display = 'block'; infoPanel.style.display = 'block'; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; document.getElementById('clear-btn').disabled = false; document.getElementById('toggle-preview-btn').disabled = false; document.getElementById('download-trigger-btn').disabled = false; setupCanvas(); if(!config.regions.content.top) { resetRegions(activeEditor, 'all'); } redrawAll(); updateInfoPanel(); setupPreview(config.image); updatePreview(); } else { canvas.style.display = 'none'; infoPanel.style.display = 'none'; stretchLineControls.style.display = 'none'; placeholder.style.display = 'block'; document.getElementById('clear-btn').disabled = true; document.getElementById('toggle-preview-btn').disabled = true; document.getElementById('download-trigger-btn').disabled = true; } }
-        function onMove(e) { const config = configurations[activeEditor]; if (!isDragging || !draggingLine || !config.image) return; e.preventDefault(); const pos = getEventPos(e); const r = config.regions[currentMode]; const w = config.image.width; const h = config.image.height; if (draggingLine === 'top') r.top = Math.max(0, Math.min(pos.y, r.bottom ?? h)); else if (draggingLine === 'bottom') r.bottom = Math.min(h, Math.max(pos.y, r.top ?? 0)); else if (draggingLine === 'left') r.left = Math.max(0, Math.min(pos.x, r.right ?? w)); else if (draggingLine === 'right') r.right = Math.min(w, Math.max(pos.x, r.left ?? 0)); redrawAll(); updateInfoPanel(); updatePreview(); }
+        
+        function onMove(e) {
+            const config = configurations[activeEditor];
+            if (!isDragging || !draggingLine || !config.image) return;
+            e.preventDefault();
+            const pos = getEventPos(e);
+            const r = config.regions[currentMode];
+            const w = config.image.width;
+            const h = config.image.height;
+            if (draggingLine === 'top') r.top = Math.max(0, Math.min(pos.y, r.bottom ?? h));
+            else if (draggingLine === 'bottom') r.bottom = Math.min(h, Math.max(pos.y, r.top ?? 0));
+            else if (draggingLine === 'left') r.left = Math.max(0, Math.min(pos.x, r.right ?? w));
+            else if (draggingLine === 'right') r.right = Math.min(w, Math.max(pos.x, r.left ?? 0));
+            redrawAll();
+            updateInfoPanel();
+            updatePreview();
+        }
 
         function toggleStretchLine(line) { const config = configurations[activeEditor]; if (!config.image) return; const w = config.image.width; const h = config.image.height; const s = config.regions.stretch; const isVertical = line === 'top'; const isHorizontal = line === 'left'; if ((isVertical && s.top !== null) || (isHorizontal && s.left !== null)) { if (isVertical) { s.top = s.bottom = null; } if (isHorizontal) { s.left = s.right = null; } } else { if (isVertical) { s.top = h * 0.25; s.bottom = h * 0.75; } if (isHorizontal) { s.left = w * 0.25; s.right = w * 0.75; } } redrawAll(); updateInfoPanel(); updatePreview(); }
         function setupPreview(image) { const maxPreviewDim = 280; let initialWidth, initialHeight; const ratio = image.width / image.height; if (ratio > 1) { initialWidth = Math.min(image.width, maxPreviewDim); initialHeight = initialWidth / ratio; } else { initialHeight = Math.min(image.height, maxPreviewDim); initialWidth = initialHeight * ratio; } initialWidth = Math.round(initialWidth); initialHeight = Math.round(initialHeight); widthSlider.min = initialWidth; widthSlider.max = 500; widthSlider.value = initialWidth; heightSlider.min = initialHeight; heightSlider.max = 500; heightSlider.value = initialHeight; previewBox.style.width = `${initialWidth}px`; previewBox.style.height = `${initialHeight}px`; }
@@ -250,10 +269,10 @@
         function getEventPos(e) { const rect = canvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: (clientX - rect.left) / scale - 1, y: (clientY - rect.top) / scale - 1, }; }
         function onDown(e) { const config = configurations[activeEditor]; if (!config.image) return; e.preventDefault(); const pos = getEventPos(e); const r = config.regions[currentMode]; const threshold = TOUCH_THRESHOLD / scale; const dists = {}; if(r.top !== null) dists.top = Math.abs(pos.y - r.top); if(r.bottom !== null) dists.bottom = Math.abs(pos.y - r.bottom); if(r.left !== null) dists.left = Math.abs(pos.x - r.left); if(r.right !== null) dists.right = Math.abs(pos.x - r.right); let min_dist = Infinity; let closest_line = null; for (const [line, dist] of Object.entries(dists)) { if (dist < min_dist) { min_dist = dist; closest_line = line; } } if (min_dist < threshold) { isDragging = true; draggingLine = closest_line; } }
         function onUp() { isDragging = false; draggingLine = null; }
-        
         function openDownloadModal() { const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image; document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none'; document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none'; document.getElementById('download-ai-btn').disabled = !hasAi; document.getElementById('download-user-btn').disabled = !hasUser; document.getElementById('download-full-css-btn').disabled = !(hasAi && hasUser); document.getElementById('download-code-btn').disabled = !(hasAi || hasUser); document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image; modal.style.display = 'flex'; }
         function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.click(); }
         
+        // ✨ Final, Ultimate, Rebuilt Code Generation Functions ✨
         function generateHtmlCode() {
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             if (!hasAi && !hasUser) { alert('请至少上传一张图片！'); return null; }
@@ -268,7 +287,8 @@
                 let fixedStyles = '';
                 if (!stretchVert) { fixedStyles += `height: ${Math.round(h / scaleFactor)}px; display: flex; align-items: center; `; }
                 if (!stretchHoriz) { fixedStyles += `width: ${Math.round(w / scaleFactor)}px; `; }
-                if (stretchHoriz && !stretchVert) { fixedStyles += 'white-space: nowrap; '; } else { fixedStyles += 'word-wrap: break-word; '; }
+                if (stretchHoriz && !stretchVert) { fixedStyles += 'white-space: nowrap; '; } 
+                else { fixedStyles += 'word-wrap: break-word; '; }
                 const bubbleStyle = `border-image-slice: ${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill; border-image-width: ${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px; padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;`;
                 return { baseStyle: `max-width: 80%; width: fit-content; line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000; ${fixedStyles}`, bubbleStyle };
             };
@@ -310,7 +330,6 @@
             let header = `/*\n * =======================================================\n *   气泡样式: ${bubbleName}\n *   - 作者: 酱酱\n *   - 声明: 所有素材均来自于本人，禁止二传二改\n * =======================================================\n*/\n\n`;
             const baseRules = `.message-bubble.user .content,\n.message-bubble.ai .content { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; position: relative; z-index: 1; }\n.message-bubble.user .content::before,\n.message-bubble.ai .content::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-style: solid; }\n`;
             let aiCss = '', userCss = '';
-
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
 
@@ -324,7 +343,6 @@
                 const data = processConfig(configurations.user, userColor);
                 userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-source: url('${userUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.user .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
             }
-
             if (!hasAi && hasUser && (target === 'ai' || target === 'full')) {
                 if (!userUrl) { alert('请输入User图片的URL！'); return; }
                 const data = processConfig(configurations.user, aiColor);
@@ -337,12 +355,10 @@
                 const flippedPadding = `${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px`;
                 userCss = `\n/* --- 用户气泡 (右侧 - 翻转) --- */\n.message-bubble.user .content::before { border-image-source: url('${aiUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; transform: scaleX(-1); }\n.message-bubble.user .content { padding: ${flippedPadding}; color: ${userColor}; }\n`;
             }
-
             let finalCss = '';
             if (target === 'ai') finalCss = header + baseRules + aiCss;
             else if (target === 'user') finalCss = header + baseRules + userCss;
             else finalCss = header + baseRules + aiCss + userCss;
-
             const blob = new Blob([finalCss], { type: 'text/plain' }); const link = document.createElement('a'); let fileName = `${bubbleName.trim()}-EPhone-Style`; if (target === 'ai') fileName += '-AI'; if (target === 'user') fileName += '-User'; link.download = `${fileName}.txt`; link.href = URL.createObjectURL(blob); link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none';
         }
 
