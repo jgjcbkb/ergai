@@ -155,7 +155,7 @@
     <div id="download-modal" class="modal"></div>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // ... (All const declarations and HTML injections)
+        // ... (All const declarations and HTML injections from your original code)
         const canvas = document.getElementById('editor-canvas'); const ctx = canvas.getContext('2d');
         const placeholder = document.getElementById('placeholder'); const infoPanel = document.getElementById('info-panel');
         const previewWindow = document.getElementById('preview-window'); const previewBox = document.getElementById('preview-box');
@@ -181,6 +181,8 @@
         const TOUCH_THRESHOLD = 22;
         const togglePreviewBtn = document.getElementById('toggle-preview-btn');
 
+        // ✨ 以下所有函数均在 DOMContentLoaded 监听器内部，保持原结构 ✨
+
         function init() {
             document.getElementById('file-input-ai').addEventListener('change', (e) => handleFileSelect(e, 'ai'));
             document.getElementById('file-input-user').addEventListener('change', (e) => handleFileSelect(e, 'user'));
@@ -191,7 +193,7 @@
                 const targetId = e.target.id;
                 if (targetId === 'modal-close-btn') modal.style.display = 'none';
                 else if (targetId === 'download-image-btn') downloadImage(activeEditor);
-                else if (targetId === 'download-code-btn') downloadCode();
+                else if (targetId === 'download-code-btn') downloadCode(); // 使用修正后的下载函数
                 else if (targetId === 'download-ai-btn') downloadEphoneCss('ai');
                 else if (targetId === 'download-user-btn') downloadEphoneCss('user');
                 else if (targetId === 'download-full-css-btn') downloadEphoneCss('full');
@@ -266,137 +268,159 @@
         
         function openDownloadModal() { const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image; document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none'; document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none'; document.getElementById('download-ai-btn').disabled = !hasAi && !hasUser; document.getElementById('download-user-btn').disabled = !hasAi && !hasUser; document.getElementById('download-full-css-btn').disabled = !(hasAi && hasUser); document.getElementById('download-code-btn').disabled = !(hasAi || hasUser); document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image; modal.style.display = 'flex'; }
         
-        function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = tempCanvas.toDataURL(); link.click(); }
+        function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const dataUrl = tempCanvas.toDataURL('image/png'); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = dataUrl; link.click(); }
         
-        // =========================================================================
-        // ✨ [FIXED] REBUILT & ACCURATE CODE GENERATION LOGIC ✨
-        // =========================================================================
-        
-        function generateHtmlCode() {
-            const hasAi = !!configurations.ai.image;
-            const hasUser = !!configurations.user.image;
-            if (!hasAi && !hasUser) {
-                alert('请至少上传一张图片！');
-                return null;
+        // =====================================================================================
+        // ✨ [核心修正] 重写代码生成函数，以精确处理“仅水平拉伸”的特殊情况 ✨
+        // =====================================================================================
+
+        /**
+         * 根据配置，生成精确的 CSS 样式对象。
+         * 此函数特别处理了“仅水平拉伸”的情况，确保生成正确的、高质量的代码。
+         * @param {object} config - 包含 image 和 regions 的配置对象
+         * @returns {{baseStyle: string, bubbleStyle: string, comment: string}}
+         */
+        function generateBubbleCss(config) {
+            const { image, regions } = config;
+            const { width: w, height: h } = image;
+            const sr = regions.stretch;
+            const cr = regions.content;
+
+            // --- 1. 判断拉伸模式 ---
+            const isHorizontalOnlyStretch = sr.left !== null && sr.top === null;
+            const isVerticalOnlyStretch = sr.left === null && sr.top !== null;
+            const isFullStretch = sr.left !== null && sr.top !== null;
+            const isFixed = sr.left === null && sr.top === null;
+
+            // --- 2. 定义缩放比例 (Scaling Factor) ---
+            // 使用一个合理的启发式算法来确定网页上的显示尺寸，使之不会过大或过小
+            const scaleFactor = Math.max(1, Math.min(w, h) / 160);
+
+            // --- 3. 初始化所有 CSS 属性变量 ---
+            let sliceTop, sliceRight, sliceBottom, sliceLeft;
+            let borderWidthTop, borderWidthRight, borderWidthBottom, borderWidthLeft;
+            let paddingTop, paddingRight, paddingBottom, paddingLeft;
+            let extraStyles = '';
+            let comment = '';
+
+            // --- 4. 根据拉伸模式进行精确计算 ---
+            if (isHorizontalOnlyStretch) {
+                // [特殊情况]：仅水平拉伸，垂直固定 (最重要的情况)
+                comment = `/*\n * 核心样式 - 固定高度、可水平拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${Math.round(sr.left)}-${Math.round(sr.right)}, V-拉伸: 固定\n */`;
+
+                // 4.1. 计算 border-image-slice (单位: 原始像素)
+                sliceTop = 0; // 核心！上下固定 = 上下切片值为 0
+                sliceRight = Math.round(w - sr.right);
+                sliceBottom = 0; // 核心！
+                sliceLeft = Math.round(sr.left);
+
+                // 4.2. 计算 border-image-width (单位: 网页像素)
+                borderWidthTop = '0px'; // 上下宽度也为 0
+                borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`;
+                borderWidthBottom = '0px';
+                borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
+
+                // 4.3. 计算 padding (单位: 网页像素)
+                paddingTop = Math.round(cr.top / scaleFactor);
+                paddingRight = Math.round((w - cr.right) / scaleFactor);
+                paddingBottom = Math.round((h - cr.bottom) / scaleFactor);
+                paddingLeft = Math.round(cr.left / scaleFactor);
+
+                // 4.4. 添加实现该效果必需的额外样式
+                extraStyles = `
+            /* 核心！高度必须固定 */
+            height: ${Math.round(h / scaleFactor)}px;
+            /* 宽度自适应，并强制不换行以触发水平拉伸 */
+            width: fit-content;
+            white-space: nowrap;
+            /* 使用 Flexbox 实现内容在固定高度内垂直居中 */
+            display: flex;
+            align-items: center;`;
+
+            } else {
+                // [通用情况]：处理双向拉伸、仅垂直拉伸、或完全固定的情况
+                comment = `/*\n * 核心样式 - 通用拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${sr.left !== null ? `${Math.round(sr.left)}-${Math.round(sr.right)}` : '固定'}, V-拉伸: ${sr.top !== null ? `${Math.round(sr.top)}-${Math.round(sr.bottom)}` : '固定'}\n */`;
+                
+                sliceTop = isFullStretch || isVerticalOnlyStretch ? Math.round(sr.top) : 0;
+                sliceRight = isFullStretch || isHorizontalOnlyStretch ? Math.round(w - sr.right) : 0;
+                sliceBottom = isFullStretch || isVerticalOnlyStretch ? Math.round(h - sr.bottom) : 0;
+                sliceLeft = isFullStretch || isHorizontalOnlyStretch ? Math.round(sr.left) : 0;
+
+                borderWidthTop = `${Math.round(sliceTop / scaleFactor)}px`;
+                borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`;
+                borderWidthBottom = `${Math.round(sliceBottom / scaleFactor)}px`;
+                borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
+                
+                paddingTop = Math.round(cr.top / scaleFactor);
+                paddingRight = Math.round((w - cr.right) / scaleFactor);
+                paddingBottom = Math.round((h - cr.bottom) / scaleFactor);
+                paddingLeft = Math.round(cr.left / scaleFactor);
+                
+                if (isFixed) {
+                    extraStyles = `width: ${Math.round(w / scaleFactor)}px; height: ${Math.round(h / scaleFactor)}px;`;
+                } else if (isVerticalOnlyStretch) {
+                    extraStyles = `width: ${Math.round(w / scaleFactor)}px;`;
+                } else { // Full Stretch
+                     extraStyles = 'width: fit-content; max-width: 80%; word-wrap: break-word;';
+                }
             }
 
-            const leftText = document.getElementById('left-text-input').value;
-            const rightText = document.getElementById('right-text-input').value;
+            // --- 5. 组装并返回最终样式字符串 ---
+            const baseStyle = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000;${extraStyles}`;
+            const bubbleStyle = `border-image-slice: ${sliceTop} ${sliceRight} ${sliceBottom} ${sliceLeft} fill; border-image-width: ${borderWidthTop} ${borderWidthRight} ${borderWidthBottom} ${borderWidthLeft}; padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;`;
 
-            const processConfig = (config) => {
-                const { image, regions } = config;
-                const { width: w, height: h } = image;
-                const sr = regions.stretch;
-                const cr = regions.content;
+            return { baseStyle, bubbleStyle, comment };
+        }
 
-                const stretchVert = sr.top !== null;
-                const stretchHoriz = sr.left !== null;
 
-                const slice = {
-                    top: stretchVert ? Math.round(sr.top) : 0,
-                    right: stretchHoriz ? Math.round(w - sr.right) : 0,
-                    bottom: stretchVert ? Math.round(h - sr.bottom) : 0,
-                    left: stretchHoriz ? Math.round(sr.left) : 0,
-                };
+        function generateHtmlCode() {
+            const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
+            if (!hasAi && !hasUser) { alert('请至少上传一张图片！'); return null; }
 
-                // Use a more stable scaling factor, e.g., based on a target height of ~150px
-                const scaleFactor = Math.max(1, h / 150);
+            const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value;
+            
+            let leftStyle = '', rightStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right', aiComment = '', userComment = '';
 
-                const borderWidth = {
-                    top: Math.round(slice.top / scaleFactor),
-                    right: Math.round(slice.right / scaleFactor),
-                    bottom: Math.round(slice.bottom / scaleFactor),
-                    left: Math.round(slice.left / scaleFactor),
-                };
-
-                const padding = {
-                    top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0,
-                    right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0,
-                    bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0,
-                    left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0,
-                };
-
-                // === CORE LOGIC REWRITE ===
-                let sizingAndLayoutStyles = '';
-                const fixedHeightStyle = `height: ${Math.round(h / scaleFactor)}px;`;
-                const fixedWidthStyle = `width: ${Math.round(w / scaleFactor)}px;`;
-                
-                if (stretchHoriz && !stretchVert) {
-                    // **CRITICAL CASE: Horizontal stretch ONLY (e.g., chat bubbles)**
-                    // This logic is now specifically tailored to be perfect.
-                    sizingAndLayoutStyles = `
-                        ${fixedHeightStyle}
-                        width: fit-content;
-                        white-space: nowrap;
-                        display: flex;
-                        align-items: center;
-                    `;
-                } else if (stretchHoriz && stretchVert) {
-                    // Case: Both directions stretch (e.g., panel backgrounds)
-                    sizingAndLayoutStyles = `
-                        width: fit-content;
-                        word-wrap: break-word;
-                    `;
-                } else if (!stretchHoriz && stretchVert) {
-                    // Case: Vertical stretch ONLY (e.g., vertical bars)
-                    sizingAndLayoutStyles = `
-                        ${fixedWidthStyle}
-                        word-wrap: break-word;
-                    `;
-                } else { // !stretchHoriz && !stretchVert
-                    // Case: Fixed size (e.g., buttons)
-                    sizingAndLayoutStyles = `
-                        ${fixedWidthStyle}
-                        ${fixedHeightStyle}
-                        /* Optional: center content in fixed box */
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    `;
-                }
-
-                const baseStyle = `max-width: 80%; line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000; ${sizingAndLayoutStyles.trim().replace(/\s+/g, ' ')}`;
-                const bubbleStyle = `border-image-slice: ${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill; border-image-width: ${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px; padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;`;
-
-                return { baseStyle, bubbleStyle };
-            };
-
-            let leftStyle = '', rightStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
             if (hasAi && hasUser) {
-                const aiData = processConfig(configurations.ai);
-                const userData = processConfig(configurations.user);
-                const aiUrl = document.getElementById('ai-url-input').value;
-                const userUrl = document.getElementById('user-url-input').value;
+                const aiData = generateBubbleCss(configurations.ai);
+                const userData = generateBubbleCss(configurations.user);
+                const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
                 if (!aiUrl || !userUrl) { alert('请输入AI和User两张图片的URL！'); return null; }
-                leftStyle = `.bubble.left { align-self: flex-start; ${aiData.baseStyle} border-image-source: url('${aiUrl}'); ${aiData.bubbleStyle} }`;
-                rightStyle = `.bubble.right { align-self: flex-end; ${userData.baseStyle} border-image-source: url('${userUrl}'); ${userData.bubbleStyle} }`;
+
+                aiComment = aiData.comment;
+                userComment = userData.comment;
+                leftStyle = `${aiComment}\n.bubble.left { align-self: flex-start; ${aiData.baseStyle} border-image-source: url('${aiUrl}'); ${aiData.bubbleStyle} }`;
+                rightStyle = `${userComment}\n.bubble.right { align-self: flex-end; ${userData.baseStyle} border-image-source: url('${userUrl}'); ${userData.bubbleStyle} }`;
                 transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? document.getElementById('ai-url-input').value : document.getElementById('user-url-input').value;
                 if (!singleUrl) { alert('请输入已上传图片的URL！'); return null; }
-                const data = processConfig(singleConfig);
-                const selectedSide = document.querySelector('input[name="side"]:checked').value;
+                const data = generateBubbleCss(singleConfig); const selectedSide = document.querySelector('input[name="side"]:checked').value;
                 const base = `${data.baseStyle} border-image-source: url('${singleUrl}'); ${data.bubbleStyle}`;
+                aiComment = data.comment;
+
                 if (selectedSide === 'left') {
-                    leftStyle = `.bubble.left { align-self: flex-start; ${base} }`;
-                    rightStyle = `.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
+                    leftStyle = `${aiComment}\n.bubble.left { align-self: flex-start; ${base} }`;
+                    rightStyle = `/* 右侧气泡通过左侧气泡水平翻转生成 */\n.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
                     transformStyle = `.bubble.right .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                } else if (selectedSide === 'right') {
-                    rightStyle = `.bubble.right { align-self: flex-end; ${base} }`;
-                    leftStyle = `.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
+                }
+                else if (selectedSide === 'right') {
+                    rightStyle = `${aiComment}\n.bubble.right { align-self: flex-end; ${base} }`;
+                    leftStyle = `/* 左侧气泡通过右侧气泡水平翻转生成 */\n.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
                     transformStyle = `.bubble.left .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                } else {
-                    leftStyle = `.bubble.center { align-self: center; ${base} }`;
-                    rightBubbleClass = 'bubble center';
+                }
+                else {
+                    leftStyle = `${aiComment}\n.bubble.center { align-self: center; ${base} }`; rightBubbleClass = 'bubble center';
                     transformStyle = `.bubble.center .content-wrapper { text-align: left; }`;
                 }
             }
-            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${leftStyle} ${rightStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText}</div></div></div></body></html>`;
-        }
+            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${leftStyle} ${rightStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
+        };
 
         function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
-        
+
+        // 保持原有的 EPhone CSS 下载函数不变，它使用的是另一套逻辑
         async function downloadEphoneCss(target) {
             const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
             if (!bubbleName) { alert("已取消下载。"); return; }
@@ -404,7 +428,7 @@
                 const { image, regions } = config; const { width: w, height: h } = image; const sr = regions.stretch; const cr = regions.content;
                 const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null;
                 const slice = { top: stretchVert ? Math.round(sr.top) : 0, right: stretchHoriz ? Math.round(w - sr.right) : 0, bottom: stretchVert ? Math.round(h - sr.bottom) : 0, left: stretchHoriz ? Math.round(sr.left) : 0 };
-                const scaleFactor = Math.max(1, h / 150);
+                const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 150));
                 const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
                 const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
                 return { slice, borderWidth, padding, color };
