@@ -155,7 +155,6 @@
     <div id="download-modal" class="modal"></div>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // ... (All const declarations and HTML injections)
         const canvas = document.getElementById('editor-canvas'); const ctx = canvas.getContext('2d');
         const placeholder = document.getElementById('placeholder'); const infoPanel = document.getElementById('info-panel');
         const previewWindow = document.getElementById('preview-window'); const previewBox = document.getElementById('preview-box');
@@ -165,6 +164,7 @@
         const modal = document.getElementById('download-modal');
         const stretchLineControls = document.getElementById('stretch-line-controls');
         const sideSelectorFieldset = document.getElementById('side-selector-fieldset');
+
         document.querySelector('.mode-selector').innerHTML = `<button class="mode-btn active" data-mode="stretch">拉伸区域</button><button class="mode-btn" data-mode="content">内容区域</button>`;
         sideSelectorFieldset.innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
         document.querySelector('.actions').innerHTML = `<label id="open-file-label" for="file-input-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input-ai" accept="image/*"><input type="file" id="file-input-user" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
@@ -181,14 +181,11 @@
         const TOUCH_THRESHOLD = 22;
         const togglePreviewBtn = document.getElementById('toggle-preview-btn');
 
-        // ✨ CORE FIX: All functions are now in the global scope of the DOMContentLoaded listener ✨
-
         function init() {
             document.getElementById('file-input-ai').addEventListener('change', (e) => handleFileSelect(e, 'ai'));
             document.getElementById('file-input-user').addEventListener('change', (e) => handleFileSelect(e, 'user'));
             document.getElementById('clear-btn').addEventListener('click', () => { if (!configurations[activeEditor].image) return; resetRegions(activeEditor, currentMode); setupPreview(configurations[activeEditor].image); redrawAll(); updateInfoPanel(); updatePreview(); });
             document.getElementById('download-trigger-btn').addEventListener('click', openDownloadModal);
-            
             modal.addEventListener('click', (e) => {
                 const targetId = e.target.id;
                 if (targetId === 'modal-close-btn') modal.style.display = 'none';
@@ -198,7 +195,6 @@
                 else if (targetId === 'download-user-btn') downloadEphoneCss('user');
                 else if (targetId === 'download-full-css-btn') downloadEphoneCss('full');
             });
-
             document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', (e) => switchEditor(e.currentTarget.dataset.editor)));
             document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => { document.querySelector('.mode-btn.active').classList.remove('active'); e.currentTarget.classList.add('active'); currentMode = e.currentTarget.dataset.mode; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; redrawAll(); }));
             togglePreviewBtn.addEventListener('click', () => previewWindow.style.display = 'block');
@@ -228,34 +224,14 @@
                     if (editor === activeEditor) {
                         updateEditorState();
                     }
-                    const hasAi = !!configurations.ai.image;
-                    const hasUser = !!configurations.user.image;
-                    sideSelectorFieldset.disabled = (hasAi && hasUser);
+                    sideSelectorFieldset.disabled = !!(configurations.ai.image && configurations.user.image);
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         }
-
         function updateEditorState() { const config = configurations[activeEditor]; if (config.image) { placeholder.style.display = 'none'; canvas.style.display = 'block'; infoPanel.style.display = 'block'; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; document.getElementById('clear-btn').disabled = false; document.getElementById('toggle-preview-btn').disabled = false; document.getElementById('download-trigger-btn').disabled = false; setupCanvas(); if(!config.regions.content.top) { resetRegions(activeEditor, 'all'); } redrawAll(); updateInfoPanel(); setupPreview(config.image); updatePreview(); } else { canvas.style.display = 'none'; infoPanel.style.display = 'none'; stretchLineControls.style.display = 'none'; placeholder.style.display = 'block'; document.getElementById('clear-btn').disabled = true; document.getElementById('toggle-preview-btn').disabled = true; document.getElementById('download-trigger-btn').disabled = true; } }
-        
-        function onMove(e) {
-            const config = configurations[activeEditor];
-            if (!isDragging || !draggingLine || !config.image) return;
-            e.preventDefault();
-            const pos = getEventPos(e);
-            const r = config.regions[currentMode];
-            const w = config.image.width;
-            const h = config.image.height;
-            if (draggingLine === 'top') r.top = Math.max(0, Math.min(pos.y, r.bottom ?? h));
-            else if (draggingLine === 'bottom') r.bottom = Math.min(h, Math.max(pos.y, r.top ?? 0));
-            else if (draggingLine === 'left') r.left = Math.max(0, Math.min(pos.x, r.right ?? w));
-            else if (draggingLine === 'right') r.right = Math.min(w, Math.max(pos.x, r.left ?? 0));
-            redrawAll();
-            updateInfoPanel();
-            updatePreview();
-        }
-
+        function onMove(e) { const config = configurations[activeEditor]; if (!isDragging || !draggingLine || !config.image) return; e.preventDefault(); const pos = getEventPos(e); const r = config.regions[currentMode]; const w = config.image.width; const h = config.image.height; if (draggingLine === 'top') r.top = Math.max(0, Math.min(pos.y, r.bottom ?? h)); else if (draggingLine === 'bottom') r.bottom = Math.min(h, Math.max(pos.y, r.top ?? 0)); else if (draggingLine === 'left') r.left = Math.max(0, Math.min(pos.x, r.right ?? w)); else if (draggingLine === 'right') r.right = Math.min(w, Math.max(pos.x, r.left ?? 0)); redrawAll(); updateInfoPanel(); updatePreview(); }
         function toggleStretchLine(line) { const config = configurations[activeEditor]; if (!config.image) return; const w = config.image.width; const h = config.image.height; const s = config.regions.stretch; const isVertical = line === 'top'; const isHorizontal = line === 'left'; if ((isVertical && s.top !== null) || (isHorizontal && s.left !== null)) { if (isVertical) { s.top = s.bottom = null; } if (isHorizontal) { s.left = s.right = null; } } else { if (isVertical) { s.top = h * 0.25; s.bottom = h * 0.75; } if (isHorizontal) { s.left = w * 0.25; s.right = w * 0.75; } } redrawAll(); updateInfoPanel(); updatePreview(); }
         function setupPreview(image) { const maxPreviewDim = 280; let initialWidth, initialHeight; const ratio = image.width / image.height; if (ratio > 1) { initialWidth = Math.min(image.width, maxPreviewDim); initialHeight = initialWidth / ratio; } else { initialHeight = Math.min(image.height, maxPreviewDim); initialWidth = initialHeight * ratio; } initialWidth = Math.round(initialWidth); initialHeight = Math.round(initialHeight); widthSlider.min = initialWidth; widthSlider.max = 500; widthSlider.value = initialWidth; heightSlider.min = initialHeight; heightSlider.max = 500; heightSlider.value = initialHeight; previewBox.style.width = `${initialWidth}px`; previewBox.style.height = `${initialHeight}px`; }
         function updateLineButtons() { const config = configurations[activeEditor]; if (!config.image) return; document.querySelector('.line-control-btn[data-line="top"]').classList.toggle('active', config.regions.stretch.top !== null); document.querySelector('.line-control-btn[data-line="left"]').classList.toggle('active', config.regions.stretch.left !== null); }
@@ -284,13 +260,18 @@
                 const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 150));
                 const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
                 const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
-                let fixedStyles = '';
-                if (!stretchVert) { fixedStyles += `height: ${Math.round(h / scaleFactor)}px; display: flex; align-items: center; `; }
-                if (!stretchHoriz) { fixedStyles += `width: ${Math.round(w / scaleFactor)}px; `; }
-                if (stretchHoriz && !stretchVert) { fixedStyles += 'white-space: nowrap; '; } 
-                else { fixedStyles += 'word-wrap: break-word; '; }
+                
+                // ✨ CORE LOGIC FIX HERE ✨
+                let specialStyles = '';
+                if (!stretchVert) { specialStyles += `height: ${Math.round(h / scaleFactor)}px; display: flex; align-items: center; `; }
+                if (!stretchHoriz) { specialStyles += `width: ${Math.round(w / scaleFactor)}px; `; }
+                if (stretchHoriz && !stretchVert) { specialStyles += 'white-space: nowrap; width: fit-content;'; } // Horizontal stretch only
+                else if (!stretchHoriz && stretchVert) { specialStyles += 'word-wrap: break-word;'; } // Vertical stretch only
+                else { specialStyles += 'word-wrap: break-word; width: fit-content;'; } // All-way stretch
+                
+                const baseStyle = `max-width: 80%; line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000; ${specialStyles}`;
                 const bubbleStyle = `border-image-slice: ${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill; border-image-width: ${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px; padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;`;
-                return { baseStyle: `max-width: 80%; width: fit-content; line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000; ${fixedStyles}`, bubbleStyle };
+                return { baseStyle, bubbleStyle };
             };
             let leftStyle = '', rightStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
             if (hasAi && hasUser) {
