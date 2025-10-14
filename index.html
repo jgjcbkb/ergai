@@ -167,7 +167,8 @@
         document.querySelector('.mode-selector').innerHTML = `<button class="mode-btn active" data-mode="stretch">拉伸区域</button><button class="mode-btn" data-mode="content">内容区域</button>`;
         sideSelectorFieldset.innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
         document.querySelector('.actions').innerHTML = `<label id="open-file-label" for="file-input-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input-ai" accept="image/*"><input type="file" id="file-input-user" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
-        modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="url-grid"><div class="input-group" id="ai-url-group"><label for="ai-url-input">AI 图片 URL:</label><input type="url" id="ai-url-input" placeholder="AI 图片链接"></div><div class="input-group" id="user-url-group"><label for="user-url-input">User 图片 URL:</label><input type="url" id="user-url-input" placeholder="User 图片链接"></div></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div><div class="modal-actions"><div class="btn-tertiary-group"><button id="download-ai-btn" class="btn-tertiary">下载 AI 样式</button><button id="download-user-btn" class="btn-tertiary">下载 User 样式</button><button id="download-full-css-btn" class="btn-tertiary">下载合并样式</button></div><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
+        // ✨ 核心修正 1: 在下载弹窗的HTML中增加“缩放比例”输入框 ✨
+        modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="url-grid"><div class="input-group" id="ai-url-group"><label for="ai-url-input">AI 图片 URL:</label><input type="url" id="ai-url-input" placeholder="AI 图片链接"></div><div class="input-group" id="user-url-group"><label for="user-url-input">User 图片 URL:</label><input type="url" id="user-url-input" placeholder="User 图片链接"></div></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="scale-factor-input"><strong>缩放比例 (SF):</strong></label><input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div><div class="modal-actions"><div class="btn-tertiary-group"><button id="download-ai-btn" class="btn-tertiary">下载 AI 样式</button><button id="download-user-btn" class="btn-tertiary">下载 User 样式</button><button id="download-full-css-btn" class="btn-tertiary">下载合并样式</button></div><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
         infoPanel.innerHTML = `<div class="info-section"><div class="info-grid"><div class="info-grid-item"><span class="label">图像尺寸:</span><span class="value" id="img-size"></span></div></div></div><div class="info-section"><h4>拉伸区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左/右:</span><span class="value" id="stretch-horiz"></span></div><div class="info-grid-item"><span class="label">上/下:</span><span class="value" id="stretch-vert"></span></div></div></div><div class="info-section"><h4>内容区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左:</span><span class="value" id="content-left"></span></div><div class="info-grid-item"><span class="label">右:</span><span class="value" id="content-right"></span></div><div class="info-grid-item"><span class="label">上:</span><span class="value" id="content-top"></span></div><div class="info-grid-item"><span class="label">下:</span><span class="value" id="content-bottom"></span></div></div></div>`;
 
         let configurations = {
@@ -264,13 +265,11 @@
         function onUp() { isDragging = false; draggingLine = null; }
         
         function openDownloadModal() {
-            const hasAi = !!configurations.ai.image;
-            const hasUser = !!configurations.user.image;
+            const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none';
             document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none';
             document.getElementById('download-ai-btn').disabled = !hasAi && !hasUser;
             document.getElementById('download-user-btn').disabled = !hasAi && !hasUser;
-            // ✨ 核心修正 1: 只要有任意一张图，就允许下载合并样式 ✨
             document.getElementById('download-full-css-btn').disabled = !(hasAi || hasUser);
             document.getElementById('download-code-btn').disabled = !(hasAi || hasUser);
             document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
@@ -279,13 +278,19 @@
         
         function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const dataUrl = tempCanvas.toDataURL('image/png'); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = dataUrl; link.click(); }
         
+        // =====================================================================================
+        // ✨ [核心修正 2] 统一使用用户输入的“缩放比例”进行计算 ✨
+        // =====================================================================================
         function generateBubbleCss(config) {
+            const scaleFactorInput = document.getElementById('scale-factor-input');
+            const scaleFactor = parseFloat(scaleFactorInput.value) || 18; // 使用输入框的值，默认为18
+
             const { image, regions } = config;
             const { width: w, height: h } = image;
             const sr = regions.stretch;
             const cr = regions.content;
             const isHorizontalOnlyStretch = sr.left !== null && sr.top === null;
-            const scaleFactor = Math.max(1, Math.min(w, h) / 160);
+
             let sliceTop, sliceRight, sliceBottom, sliceLeft;
             let borderWidthTop, borderWidthRight, borderWidthBottom, borderWidthLeft;
             let paddingTop, paddingRight, paddingBottom, paddingLeft;
@@ -345,18 +350,19 @@
         };
         function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
         
-        // =====================================================================================
-        // ✨ [核心修正 2] 重写 EPhone CSS 下载函数 ✨
-        // =====================================================================================
         async function downloadEphoneCss(target) {
             const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
             if (!bubbleName) { alert("已取消下载。"); return; }
+            
+            // ✨ 核心修正 3: 统一从输入框获取缩放比例 ✨
+            const scaleFactorInput = document.getElementById('scale-factor-input');
+            const scaleFactor = parseFloat(scaleFactorInput.value) || 18;
 
             const processConfig = (config, color) => {
                 const { image, regions } = config; const { width: w, height: h } = image; const sr = regions.stretch; const cr = regions.content;
                 const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null;
                 const slice = { top: stretchVert ? Math.round(sr.top) : 0, right: stretchHoriz ? Math.round(w - sr.right) : 0, bottom: stretchVert ? Math.round(h - sr.bottom) : 0, left: stretchHoriz ? Math.round(sr.left) : 0 };
-                const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 150));
+                // 使用传入的 scaleFactor，而不是重新计算
                 const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
                 const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
                 return { slice, borderWidth, padding, color };
@@ -370,7 +376,7 @@
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
 
-            if (hasAi && hasUser) { // --- Case 1: 两张图都存在 ---
+            if (hasAi && hasUser) {
                 if(target === 'ai' || target === 'full') {
                     if(!aiUrl){ alert('请输入AI图片的URL！'); return; }
                     const data = processConfig(configurations.ai, aiColor);
@@ -381,13 +387,12 @@
                     const data = processConfig(configurations.user, userColor);
                     userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-source: url('${userUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.user .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
                 }
-            } else if (hasAi || hasUser) { // --- Case 2: 只有一张图存在 ---
+            } else if (hasAi || hasUser) {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? aiUrl : userUrl;
                 if (!singleUrl) { alert('请输入已上传图片的URL！'); return; }
-
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
-                const data = processConfig(singleConfig, '#_placeholder_#'); // Color will be set later
+                const data = processConfig(singleConfig, '#_placeholder_#');
                 const flippedPadding = `${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px`;
                 const beforeStyle = `border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px;`;
                 const aiPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${aiColor};`;
