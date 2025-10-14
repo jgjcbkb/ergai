@@ -263,106 +263,66 @@
         
         function onUp() { isDragging = false; draggingLine = null; }
         
-        function openDownloadModal() { const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image; document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none'; document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none'; document.getElementById('download-ai-btn').disabled = !hasAi && !hasUser; document.getElementById('download-user-btn').disabled = !hasAi && !hasUser; document.getElementById('download-full-css-btn').disabled = !(hasAi && hasUser); document.getElementById('download-code-btn').disabled = !(hasAi || hasUser); document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image; modal.style.display = 'flex'; }
+        function openDownloadModal() {
+            const hasAi = !!configurations.ai.image;
+            const hasUser = !!configurations.user.image;
+            document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none';
+            document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none';
+            document.getElementById('download-ai-btn').disabled = !hasAi && !hasUser;
+            document.getElementById('download-user-btn').disabled = !hasAi && !hasUser;
+            // ✨ 核心修正 1: 只要有任意一张图，就允许下载合并样式 ✨
+            document.getElementById('download-full-css-btn').disabled = !(hasAi || hasUser);
+            document.getElementById('download-code-btn').disabled = !(hasAi || hasUser);
+            document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
+            modal.style.display = 'flex';
+        }
         
         function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const dataUrl = tempCanvas.toDataURL('image/png'); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = dataUrl; link.click(); }
         
-        // =====================================================================================
-        // ✨ [核心修正] 重写代码生成函数，以精确处理各种情况 ✨
-        // =====================================================================================
         function generateBubbleCss(config) {
             const { image, regions } = config;
             const { width: w, height: h } = image;
             const sr = regions.stretch;
             const cr = regions.content;
-
             const isHorizontalOnlyStretch = sr.left !== null && sr.top === null;
-            const isVerticalOnlyStretch = sr.left === null && sr.top !== null;
-            const isFullStretch = sr.left !== null && sr.top !== null;
-            const isFixed = sr.left === null && sr.top === null;
-
             const scaleFactor = Math.max(1, Math.min(w, h) / 160);
-
             let sliceTop, sliceRight, sliceBottom, sliceLeft;
             let borderWidthTop, borderWidthRight, borderWidthBottom, borderWidthLeft;
             let paddingTop, paddingRight, paddingBottom, paddingLeft;
-            let extraStyles = '';
-            let comment = '';
+            let extraStyles = '', comment = '';
 
             if (isHorizontalOnlyStretch) {
                 comment = `/*\n * 核心样式 - 固定高度、可水平拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${Math.round(sr.left)}-${Math.round(sr.right)}, V-拉伸: 固定\n */`;
-                sliceTop = 0;
-                sliceRight = Math.round(w - sr.right);
-                sliceBottom = 0;
-                sliceLeft = Math.round(sr.left);
-                borderWidthTop = '0px';
-                borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`;
-                borderWidthBottom = '0px';
-                borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
-                paddingTop = Math.round(cr.top / scaleFactor);
-                paddingRight = Math.round((w - cr.right) / scaleFactor);
-                paddingBottom = Math.round((h - cr.bottom) / scaleFactor);
-                paddingLeft = Math.round(cr.left / scaleFactor);
-                extraStyles = `
-            /* 核心！高度必须固定 */
-            height: ${Math.round(h / scaleFactor)}px;
-            /* 宽度自适应，并强制不换行以触发水平拉伸 */
-            width: fit-content;
-            white-space: nowrap;
-            /* 使用 Flexbox 实现内容在固定高度内垂直居中 */
-            display: flex;
-            align-items: center;`;
+                sliceTop = 0; sliceRight = Math.round(w - sr.right); sliceBottom = 0; sliceLeft = Math.round(sr.left);
+                borderWidthTop = '0px'; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = '0px'; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
+                extraStyles = `\n            height: ${Math.round(h / scaleFactor)}px;\n            width: fit-content;\n            white-space: nowrap;\n            display: flex;\n            align-items: center;`;
             } else {
                 comment = `/*\n * 核心样式 - 通用拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${sr.left !== null ? `${Math.round(sr.left)}-${Math.round(sr.right)}` : '固定'}, V-拉伸: ${sr.top !== null ? `${Math.round(sr.top)}-${Math.round(sr.bottom)}` : '固定'}\n */`;
-                sliceTop = sr.top !== null ? Math.round(sr.top) : 0;
-                sliceRight = sr.left !== null ? Math.round(w - sr.right) : 0;
-                sliceBottom = sr.top !== null ? Math.round(h - sr.bottom) : 0;
-                sliceLeft = sr.left !== null ? Math.round(sr.left) : 0;
-                borderWidthTop = `${Math.round(sliceTop / scaleFactor)}px`;
-                borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`;
-                borderWidthBottom = `${Math.round(sliceBottom / scaleFactor)}px`;
-                borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
-                paddingTop = Math.round(cr.top / scaleFactor);
-                paddingRight = Math.round((w - cr.right) / scaleFactor);
-                paddingBottom = Math.round((h - cr.bottom) / scaleFactor);
-                paddingLeft = Math.round(cr.left / scaleFactor);
-                if (isFixed) {
-                    extraStyles = `width: ${Math.round(w / scaleFactor)}px; height: ${Math.round(h / scaleFactor)}px;`;
-                } else if (isVerticalOnlyStretch) {
-                    extraStyles = `width: ${Math.round(w / scaleFactor)}px;`;
-                } else {
-                     extraStyles = 'width: fit-content; max-width: 80%; word-wrap: break-word;';
-                }
+                sliceTop = sr.top !== null ? Math.round(sr.top) : 0; sliceRight = sr.left !== null ? Math.round(w - sr.right) : 0; sliceBottom = sr.top !== null ? Math.round(h - sr.bottom) : 0; sliceLeft = sr.left !== null ? Math.round(sr.left) : 0;
+                borderWidthTop = `${Math.round(sliceTop / scaleFactor)}px`; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = `${Math.round(sliceBottom / scaleFactor)}px`; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
+                const isFixed = sr.left === null && sr.top === null; const isVerticalOnlyStretch = sr.left === null && sr.top !== null;
+                if (isFixed) { extraStyles = `width: ${Math.round(w / scaleFactor)}px; height: ${Math.round(h / scaleFactor)}px;`; } 
+                else if (isVerticalOnlyStretch) { extraStyles = `width: ${Math.round(w / scaleFactor)}px;`; } 
+                else { extraStyles = 'width: fit-content; max-width: 80%; word-wrap: break-word;'; }
             }
-
+            paddingTop = Math.round(cr.top / scaleFactor); paddingRight = Math.round((w - cr.right) / scaleFactor); paddingBottom = Math.round((h - cr.bottom) / scaleFactor); paddingLeft = Math.round(cr.left / scaleFactor);
             const baseStyle = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000;${extraStyles}`;
             const bubbleStyle = `border-image-slice: ${sliceTop} ${sliceRight} ${sliceBottom} ${sliceLeft} fill; border-image-width: ${borderWidthTop} ${borderWidthRight} ${borderWidthBottom} ${borderWidthLeft}; padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;`;
-
             return { baseStyle, bubbleStyle, comment };
         }
 
         function generateHtmlCode() {
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             if (!hasAi && !hasUser) { alert('请至少上传一张图片！'); return null; }
-
             const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value;
-            
-            let combinedStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right', comment = '';
+            let combinedStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
 
             if (hasAi && hasUser) {
-                const aiData = generateBubbleCss(configurations.ai);
-                const userData = generateBubbleCss(configurations.user);
+                const aiData = generateBubbleCss(configurations.ai); const userData = generateBubbleCss(configurations.user);
                 const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
                 if (!aiUrl || !userUrl) { alert('请输入AI和User两张图片的URL！'); return null; }
-
-                combinedStyle = `
-                    ${aiData.comment}
-                    .bubble.left { align-self: flex-start; ${aiData.baseStyle} border-image-source: url('${aiUrl}'); ${aiData.bubbleStyle} }
-                    ${userData.comment}
-                    .bubble.right { align-self: flex-end; ${userData.baseStyle} border-image-source: url('${userUrl}'); ${userData.bubbleStyle} }
-                `;
+                combinedStyle = `${aiData.comment}\n.bubble.left { align-self: flex-start; ${aiData.baseStyle} border-image-source: url('${aiUrl}'); ${aiData.bubbleStyle} }\n${userData.comment}\n.bubble.right { align-self: flex-end; ${userData.baseStyle} border-image-source: url('${userUrl}'); ${userData.bubbleStyle} }`;
                 transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? document.getElementById('ai-url-input').value : document.getElementById('user-url-input').value;
@@ -370,45 +330,28 @@
                 const data = generateBubbleCss(singleConfig); 
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
                 const base = `${data.baseStyle} border-image-source: url('${singleUrl}'); ${data.bubbleStyle}`;
-                comment = data.comment;
-
                 if (selectedSide === 'left') {
-                    combinedStyle = `
-                        ${comment}
-                        .bubble.left { align-self: flex-start; ${base} }
-                        /* 右侧气泡通过左侧气泡水平翻转生成 */
-                        .bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }
-                    `;
+                    combinedStyle = `${data.comment}\n.bubble.left { align-self: flex-start; ${base} }\n/* 右侧气泡通过左侧气泡水平翻转生成 */\n.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
                     transformStyle = `.bubble.right .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                }
-                else if (selectedSide === 'right') {
-                    combinedStyle = `
-                        ${comment}
-                        .bubble.right { align-self: flex-end; ${base} }
-                        /* 左侧气泡通过右侧气泡水平翻转生成 */
-                        .bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }
-                    `;
+                } else if (selectedSide === 'right') {
+                    combinedStyle = `${data.comment}\n.bubble.right { align-self: flex-end; ${base} }\n/* 左侧气泡通过右侧气泡水平翻转生成 */\n.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
                     transformStyle = `.bubble.left .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                }
-                else { // selectedSide === 'center'
-                    combinedStyle = `
-                        ${comment}
-                        /* “居中”模式下，左右气泡使用相同样式，不翻转 */
-                        .bubble.left, .bubble.right { ${base} }
-                        .bubble.left { align-self: flex-start; }
-                        .bubble.right { align-self: flex-end; }
-                    `;
+                } else { // 'center'
+                    combinedStyle = `${data.comment}\n/* “居中”模式下，左右气泡使用相同样式，不翻转 */\n.bubble.left, .bubble.right { ${base} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
                     transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
                 }
             }
             return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
         };
-
         function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
         
+        // =====================================================================================
+        // ✨ [核心修正 2] 重写 EPhone CSS 下载函数 ✨
+        // =====================================================================================
         async function downloadEphoneCss(target) {
             const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
             if (!bubbleName) { alert("已取消下载。"); return; }
+
             const processConfig = (config, color) => {
                 const { image, regions } = config; const { width: w, height: h } = image; const sr = regions.stretch; const cr = regions.content;
                 const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null;
@@ -418,40 +361,61 @@
                 const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
                 return { slice, borderWidth, padding, color };
             };
-            const aiColor = document.getElementById('ai-color-input').value;
-            const userColor = document.getElementById('user-color-input').value;
-            let header = `/*\n * =======================================================\n *   气泡样式: ${bubbleName}\n *   - 作者: 酱酱\n *   - 声明: 所有素材均来自于本人，禁止二传二改\n * =======================================================\n*/\n\n`;
-            const baseRules = `.message-bubble.user .content,\n.message-bubble.ai .content { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; position: relative; z-index: 1; }\n.message-bubble.user .content::before,\n.message-bubble.ai .content::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-style: solid; }\n`;
+            
+            const aiColor = document.getElementById('ai-color-input').value; const userColor = document.getElementById('user-color-input').value;
+            const header = `/*\n * =======================================================\n *   气泡样式: ${bubbleName}\n *   - 作者: 酱酱\n *   - 声明: 所有素材均来自于本人，禁止二传二改\n * =======================================================\n*/\n\n`;
+            const baseRules = `.message-bubble.user .content,\n.message-bubble.ai .content { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; position: relative; z-index: 1; }\n.message-bubble.user .content::before,\n.message-bubble.ai .content::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-style: solid; border-image-repeat: repeat; }\n`;
             let aiCss = '', userCss = '';
+            
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
 
-            if(hasAi && (target === 'ai' || target === 'full')) {
-                if(!aiUrl){ alert('请输入AI图片的URL！'); return; }
-                const data = processConfig(configurations.ai, aiColor);
-                aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-source: url('${aiUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.ai .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
-            }
-            if(hasUser && (target === 'user' || target === 'full')) {
-                if(!userUrl){ alert('请输入User图片的URL！'); return; }
-                const data = processConfig(configurations.user, userColor);
-                userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-source: url('${userUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.user .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
-            }
-            if (!hasAi && hasUser && (target === 'ai' || target === 'full')) {
-                if (!userUrl) { alert('请输入User图片的URL！'); return; }
-                const data = processConfig(configurations.user, aiColor);
+            if (hasAi && hasUser) { // --- Case 1: 两张图都存在 ---
+                if(target === 'ai' || target === 'full') {
+                    if(!aiUrl){ alert('请输入AI图片的URL！'); return; }
+                    const data = processConfig(configurations.ai, aiColor);
+                    aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-source: url('${aiUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.ai .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
+                }
+                if(target === 'user' || target === 'full') {
+                    if(!userUrl){ alert('请输入User图片的URL！'); return; }
+                    const data = processConfig(configurations.user, userColor);
+                    userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-source: url('${userUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.user .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
+                }
+            } else if (hasAi || hasUser) { // --- Case 2: 只有一张图存在 ---
+                const singleConfig = hasAi ? configurations.ai : configurations.user;
+                const singleUrl = hasAi ? aiUrl : userUrl;
+                if (!singleUrl) { alert('请输入已上传图片的URL！'); return; }
+
+                const selectedSide = document.querySelector('input[name="side"]:checked').value;
+                const data = processConfig(singleConfig, '#_placeholder_#'); // Color will be set later
                 const flippedPadding = `${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px`;
-                aiCss = `\n/* --- AI气泡 (左侧 - 翻转) --- */\n.message-bubble.ai .content::before { border-image-source: url('${userUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; transform: scaleX(-1); }\n.message-bubble.ai .content { padding: ${flippedPadding}; color: ${aiColor}; }\n`;
+                const beforeStyle = `border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px;`;
+                const aiPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${aiColor};`;
+                const userPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${userColor};`;
+                const aiFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${aiColor};`;
+                const userFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${userColor};`;
+
+                switch (selectedSide) {
+                    case 'left':
+                        aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { ${beforeStyle} }\n.message-bubble.ai .content { ${aiPaddingStyle} }\n`;
+                        userCss = `\n/* --- 用户气泡 (右侧 - 翻转) --- */\n.message-bubble.user .content::before { ${beforeStyle} transform: scaleX(-1); }\n.message-bubble.user .content { ${userFlippedPaddingStyle} }\n`;
+                        break;
+                    case 'right':
+                        aiCss = `\n/* --- AI气泡 (左侧 - 翻转) --- */\n.message-bubble.ai .content::before { ${beforeStyle} transform: scaleX(-1); }\n.message-bubble.ai .content { ${aiFlippedPaddingStyle} }\n`;
+                        userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { ${beforeStyle} }\n.message-bubble.user .content { ${userPaddingStyle} }\n`;
+                        break;
+                    case 'center':
+                        aiCss = `\n/* --- AI气泡 (左侧 - 居中模板) --- */\n.message-bubble.ai .content::before { ${beforeStyle} }\n.message-bubble.ai .content { ${aiPaddingStyle} }\n`;
+                        userCss = `\n/* --- 用户气泡 (右侧 - 居中模板) --- */\n.message-bubble.user .content::before { ${beforeStyle} }\n.message-bubble.user .content { ${userPaddingStyle} }\n`;
+                        break;
+                }
             }
-            if (hasAi && !hasUser && (target === 'user' || target === 'full')) {
-                if (!aiUrl) { alert('请输入AI图片的URL！'); return; }
-                const data = processConfig(configurations.ai, userColor);
-                const flippedPadding = `${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px`;
-                userCss = `\n/* --- 用户气泡 (右侧 - 翻转) --- */\n.message-bubble.user .content::before { border-image-source: url('${aiUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; transform: scaleX(-1); }\n.message-bubble.user .content { padding: ${flippedPadding}; color: ${userColor}; }\n`;
-            }
+
             let finalCss = '';
             if (target === 'ai') finalCss = header + baseRules + aiCss;
             else if (target === 'user') finalCss = header + baseRules + userCss;
             else finalCss = header + baseRules + aiCss + userCss;
+            
             const blob = new Blob([finalCss], { type: 'text/plain' }); const link = document.createElement('a'); let fileName = `${bubbleName.trim()}-EPhone-Style`; if (target === 'ai') fileName += '-AI'; if (target === 'user') fileName += '-User'; link.download = `${fileName}.txt`; link.href = URL.createObjectURL(blob); link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none';
         }
 
