@@ -110,6 +110,7 @@
         .modal-actions button { padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
         .modal-actions .btn-primary { background-color: #2ecc71; color: white; }
         .modal-actions .btn-secondary { background-color: #3498db; color: white; }
+        /* ✨ 新增样式，用于排列新增的三个按钮 ✨ */
         .modal-actions .btn-tertiary-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         .modal-actions .btn-tertiary { background-color: #9b59b6; color: white; font-size: 12px; padding: 10px 5px; }
         #modal-close-btn { background-color: #e74c3c; color: white; margin-top: 10px; }
@@ -153,280 +154,283 @@
         </div>
     </div>
     <div id="download-modal" class="modal"></div>
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const canvas = document.getElementById('editor-canvas'); const ctx = canvas.getContext('2d');
-        const placeholder = document.getElementById('placeholder'); const infoPanel = document.getElementById('info-panel');
-        const previewWindow = document.getElementById('preview-window'); const previewBox = document.getElementById('preview-box');
-        const previewContentArea = document.getElementById('preview-content-area');
-        const widthSlider = document.getElementById('width-slider'); const heightSlider = document.getElementById('height-slider');
-        const showContentCheckbox = document.getElementById('show-content-checkbox');
-        const modal = document.getElementById('download-modal');
-        const stretchLineControls = document.getElementById('stretch-line-controls');
-        const sideSelectorFieldset = document.getElementById('side-selector-fieldset');
-        document.querySelector('.mode-selector').innerHTML = `<button class="mode-btn active" data-mode="stretch">拉伸区域</button><button class="mode-btn" data-mode="content">内容区域</button>`;
-        sideSelectorFieldset.innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
-        document.querySelector('.actions').innerHTML = `<label id="open-file-label" for="file-input-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input-ai" accept="image/*"><input type="file" id="file-input-user" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
-        // ✨ 核心修正 1: 在下载弹窗的HTML中增加“缩放比例”输入框 ✨
-        modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="url-grid"><div class="input-group" id="ai-url-group"><label for="ai-url-input">AI 图片 URL:</label><input type="url" id="ai-url-input" placeholder="AI 图片链接"></div><div class="input-group" id="user-url-group"><label for="user-url-input">User 图片 URL:</label><input type="url" id="user-url-input" placeholder="User 图片链接"></div></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="scale-factor-input"><strong>缩放比例 (SF):</strong></label><input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div><div class="modal-actions"><div class="btn-tertiary-group"><button id="download-ai-btn" class="btn-tertiary">下载 AI 样式</button><button id="download-user-btn" class="btn-tertiary">下载 User 样式</button><button id="download-full-css-btn" class="btn-tertiary">下载合并样式</button></div><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
-        infoPanel.innerHTML = `<div class="info-section"><div class="info-grid"><div class="info-grid-item"><span class="label">图像尺寸:</span><span class="value" id="img-size"></span></div></div></div><div class="info-section"><h4>拉伸区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左/右:</span><span class="value" id="stretch-horiz"></span></div><div class="info-grid-item"><span class="label">上/下:</span><span class="value" id="stretch-vert"></span></div></div></div><div class="info-section"><h4>内容区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左:</span><span class="value" id="content-left"></span></div><div class="info-grid-item"><span class="label">右:</span><span class="value" id="content-right"></span></div><div class="info-grid-item"><span class="label">上:</span><span class="value" id="content-top"></span></div><div class="info-grid-item"><span class="label">下:</span><span class="value" id="content-bottom"></span></div></div></div>`;
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('editor-canvas'); const ctx = canvas.getContext('2d');
+    const placeholder = document.getElementById('placeholder'); const infoPanel = document.getElementById('info-panel');
+    const previewWindow = document.getElementById('preview-window'); const previewBox = document.getElementById('preview-box');
+    const previewContentArea = document.getElementById('preview-content-area');
+    const widthSlider = document.getElementById('width-slider'); const heightSlider = document.getElementById('height-slider');
+    const showContentCheckbox = document.getElementById('show-content-checkbox');
+    const modal = document.getElementById('download-modal');
+    const stretchLineControls = document.getElementById('stretch-line-controls');
+    const sideSelectorFieldset = document.getElementById('side-selector-fieldset');
+    document.querySelector('.mode-selector').innerHTML = `<button class="mode-btn active" data-mode="stretch">拉伸区域</button><button class="mode-btn" data-mode="content">内容区域</button>`;
+    sideSelectorFieldset.innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
+    document.querySelector('.actions').innerHTML = `<label id="open-file-label" for="file-input-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input-ai" accept="image/*"><input type="file" id="file-input-user" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
+    
+    // ✨ 核心修正 1: 更新下载弹窗的HTML，增加三个CSS下载按钮和“缩放比例”输入框 ✨
+    modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="url-grid"><div class="input-group" id="ai-url-group"><label for="ai-url-input">AI 图片 URL:</label><input type="url" id="ai-url-input" placeholder="AI 图片链接"></div><div class="input-group" id="user-url-group"><label for="user-url-input">User 图片 URL:</label><input type="url" id="user-url-input" placeholder="User 图片链接"></div></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="scale-factor-input"><strong>缩放比例 (SF):</strong></label><input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div><div class="modal-actions"><div class="btn-tertiary-group"><button id="download-ai-btn" class="btn-tertiary">下载 AI 样式</button><button id="download-user-btn" class="btn-tertiary">下载 User 样式</button><button id="download-full-css-btn" class="btn-tertiary">下载合并样式</button></div><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
 
-        let configurations = {
-            ai: { image: null, regions: { stretch: { top: null, bottom: null, left: null, right: null }, content: {} }, fileName: '' },
-            user: { image: null, regions: { stretch: { top: null, bottom: null, left: null, right: null }, content: {} }, fileName: '' }
-        };
-        let activeEditor = 'ai';
-        let currentMode = 'stretch';
-        let isDragging = false, draggingLine = null, scale = 1;
-        const TOUCH_THRESHOLD = 22;
-        const togglePreviewBtn = document.getElementById('toggle-preview-btn');
+    infoPanel.innerHTML = `<div class="info-section"><div class="info-grid"><div class="info-grid-item"><span class="label">图像尺寸:</span><span class="value" id="img-size"></span></div></div></div><div class="info-section"><h4>拉伸区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左/右:</span><span class="value" id="stretch-horiz"></span></div><div class="info-grid-item"><span class="label">上/下:</span><span class="value" id="stretch-vert"></span></div></div></div><div class="info-section"><h4>内容区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左:</span><span class="value" id="content-left"></span></div><div class="info-grid-item"><span class="label">右:</span><span class="value" id="content-right"></span></div><div class="info-grid-item"><span class="label">上:</span><span class="value" id="content-top"></span></div><div class="info-grid-item"><span class="label">下:</span><span class="value" id="content-bottom"></span></div></div></div>`;
 
-        function init() {
-            document.getElementById('file-input-ai').addEventListener('change', (e) => handleFileSelect(e, 'ai'));
-            document.getElementById('file-input-user').addEventListener('change', (e) => handleFileSelect(e, 'user'));
-            document.getElementById('clear-btn').addEventListener('click', () => { if (!configurations[activeEditor].image) return; resetRegions(activeEditor, currentMode); setupPreview(configurations[activeEditor].image); redrawAll(); updateInfoPanel(); updatePreview(); });
-            document.getElementById('download-trigger-btn').addEventListener('click', openDownloadModal);
-            
-            modal.addEventListener('click', (e) => {
-                const targetId = e.target.id;
-                if (targetId === 'modal-close-btn') modal.style.display = 'none';
-                else if (targetId === 'download-image-btn') downloadImage(activeEditor);
-                else if (targetId === 'download-code-btn') downloadCode();
-                else if (targetId === 'download-ai-btn') downloadEphoneCss('ai');
-                else if (targetId === 'download-user-btn') downloadEphoneCss('user');
-                else if (targetId === 'download-full-css-btn') downloadEphoneCss('full');
-            });
+    let configurations = {
+        ai: { image: null, regions: { stretch: { top: null, bottom: null, left: null, right: null }, content: {} }, fileName: '' },
+        user: { image: null, regions: { stretch: { top: null, bottom: null, left: null, right: null }, content: {} }, fileName: '' }
+    };
+    let activeEditor = 'ai';
+    let currentMode = 'stretch';
+    let isDragging = false, draggingLine = null, scale = 1;
+    const TOUCH_THRESHOLD = 22;
+    const togglePreviewBtn = document.getElementById('toggle-preview-btn');
 
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', (e) => switchEditor(e.currentTarget.dataset.editor)));
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => { document.querySelector('.mode-btn.active').classList.remove('active'); e.currentTarget.classList.add('active'); currentMode = e.currentTarget.dataset.mode; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; redrawAll(); }));
-            togglePreviewBtn.addEventListener('click', () => previewWindow.style.display = 'block');
-            document.getElementById('preview-close-btn').addEventListener('click', () => previewWindow.style.display = 'none');
-            widthSlider.addEventListener('input', e => previewBox.style.width = `${e.target.value}px`);
-            heightSlider.addEventListener('input', e => previewBox.style.height = `${e.target.value}px`);
-            showContentCheckbox.addEventListener('change', e => previewContentArea.classList.toggle('visible', e.target.checked));
-            const wrapper = document.getElementById('canvas-wrapper');
-            const events = { down: ['mousedown', 'touchstart'], up: ['mouseup', 'touchend', 'touchcancel'], };
-            events.down.forEach(e => wrapper.addEventListener(e, onDown, { passive: false }));
-            window.addEventListener('mousemove', onMove, { passive: false });
-            window.addEventListener('touchmove', onMove, { passive: false, capture: true });
-            events.up.forEach(e => window.addEventListener(e, onUp, { passive: false }));
-            stretchLineControls.addEventListener('click', (e) => { const btn = e.target.closest('.line-control-btn'); if (btn) { toggleStretchLine(btn.dataset.line); } });
-        }
+    function init() {
+        document.getElementById('file-input-ai').addEventListener('change', (e) => handleFileSelect(e, 'ai'));
+        document.getElementById('file-input-user').addEventListener('change', (e) => handleFileSelect(e, 'user'));
+        document.getElementById('clear-btn').addEventListener('click', () => { if (!configurations[activeEditor].image) return; resetRegions(activeEditor, currentMode); setupPreview(configurations[activeEditor].image); redrawAll(); updateInfoPanel(); updatePreview(); });
+        document.getElementById('download-trigger-btn').addEventListener('click', openDownloadModal);
+        
+        // ✨ 核心修正 2: 为所有下载按钮绑定事件 ✨
+        modal.addEventListener('click', (e) => {
+            const targetId = e.target.id;
+            if (targetId === 'modal-close-btn') modal.style.display = 'none';
+            else if (targetId === 'download-image-btn') downloadImage(activeEditor);
+            else if (targetId === 'download-code-btn') downloadCode();
+            else if (targetId === 'download-ai-btn') downloadEphoneCss('ai'); // 新增
+            else if (targetId === 'download-user-btn') downloadEphoneCss('user'); // 新增
+            else if (targetId === 'download-full-css-btn') downloadEphoneCss('full'); // 新增
+        });
 
-        function switchEditor(editor) { if (activeEditor === editor) return; activeEditor = editor; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.tab-btn[data-editor="${editor}"]`).classList.add('active'); document.getElementById('open-file-label').htmlFor = `file-input-${editor}`; updateEditorState(); }
-        
-        function handleFileSelect(e, editor) {
-            const file = e.target.files[0]; if (!file) return;
-            const config = configurations[editor];
-            config.fileName = file.name;
-            const reader = new FileReader();
-            reader.onload = event => {
-                const img = new Image();
-                img.onload = () => {
-                    config.image = img;
-                    if (editor === activeEditor) {
-                        updateEditorState();
-                    }
-                    sideSelectorFieldset.disabled = !!(configurations.ai.image && configurations.user.image);
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', (e) => switchEditor(e.currentTarget.dataset.editor)));
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => { document.querySelector('.mode-btn.active').classList.remove('active'); e.currentTarget.classList.add('active'); currentMode = e.currentTarget.dataset.mode; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; redrawAll(); }));
+        togglePreviewBtn.addEventListener('click', () => previewWindow.style.display = 'block');
+        document.getElementById('preview-close-btn').addEventListener('click', () => previewWindow.style.display = 'none');
+        widthSlider.addEventListener('input', e => previewBox.style.width = `${e.target.value}px`);
+        heightSlider.addEventListener('input', e => previewBox.style.height = `${e.target.value}px`);
+        showContentCheckbox.addEventListener('change', e => previewContentArea.classList.toggle('visible', e.target.checked));
+        const wrapper = document.getElementById('canvas-wrapper');
+        const events = { down: ['mousedown', 'touchstart'], up: ['mouseup', 'touchend', 'touchcancel'], };
+        events.down.forEach(e => wrapper.addEventListener(e, onDown, { passive: false }));
+        window.addEventListener('mousemove', onMove, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false, capture: true });
+        events.up.forEach(e => window.addEventListener(e, onUp, { passive: false }));
+        stretchLineControls.addEventListener('click', (e) => { const btn = e.target.closest('.line-control-btn'); if (btn) { toggleStretchLine(btn.dataset.line); } });
+    }
 
-        function updateEditorState() { const config = configurations[activeEditor]; if (config.image) { placeholder.style.display = 'none'; canvas.style.display = 'block'; infoPanel.style.display = 'block'; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; document.getElementById('clear-btn').disabled = false; document.getElementById('toggle-preview-btn').disabled = false; document.getElementById('download-trigger-btn').disabled = false; setupCanvas(); if(!config.regions.content.top) { resetRegions(activeEditor, 'all'); } redrawAll(); updateInfoPanel(); setupPreview(config.image); updatePreview(); } else { canvas.style.display = 'none'; infoPanel.style.display = 'none'; stretchLineControls.style.display = 'none'; placeholder.style.display = 'block'; document.getElementById('clear-btn').disabled = true; document.getElementById('toggle-preview-btn').disabled = true; document.getElementById('download-trigger-btn').disabled = true; } }
-        
-        function onMove(e) { const config = configurations[activeEditor]; if (!isDragging || !draggingLine || !config.image) return; e.preventDefault(); const pos = getEventPos(e); const r = config.regions[currentMode]; const w = config.image.width; const h = config.image.height; if (draggingLine === 'top') r.top = Math.max(0, Math.min(pos.y, r.bottom ?? h)); else if (draggingLine === 'bottom') r.bottom = Math.min(h, Math.max(pos.y, r.top ?? 0)); else if (draggingLine === 'left') r.left = Math.max(0, Math.min(pos.x, r.right ?? w)); else if (draggingLine === 'right') r.right = Math.min(w, Math.max(pos.x, r.left ?? 0)); redrawAll(); updateInfoPanel(); updatePreview(); }
-        
-        function toggleStretchLine(line) { const config = configurations[activeEditor]; if (!config.image) return; const w = config.image.width; const h = config.image.height; const s = config.regions.stretch; const isVertical = line === 'top'; const isHorizontal = line === 'left'; if ((isVertical && s.top !== null) || (isHorizontal && s.left !== null)) { if (isVertical) { s.top = s.bottom = null; } if (isHorizontal) { s.left = s.right = null; } } else { if (isVertical) { s.top = h * 0.25; s.bottom = h * 0.75; } if (isHorizontal) { s.left = w * 0.25; s.right = w * 0.75; } } redrawAll(); updateInfoPanel(); updatePreview(); }
-        
-        function setupPreview(image) { const maxPreviewDim = 280; let initialWidth, initialHeight; const ratio = image.width / image.height; if (ratio > 1) { initialWidth = Math.min(image.width, maxPreviewDim); initialHeight = initialWidth / ratio; } else { initialHeight = Math.min(image.height, maxPreviewDim); initialWidth = initialHeight * ratio; } initialWidth = Math.round(initialWidth); initialHeight = Math.round(initialHeight); widthSlider.min = initialWidth; widthSlider.max = 500; widthSlider.value = initialWidth; heightSlider.min = initialHeight; heightSlider.max = 500; heightSlider.value = initialHeight; previewBox.style.width = `${initialWidth}px`; previewBox.style.height = `${initialHeight}px`; }
-        
-        function updateLineButtons() { const config = configurations[activeEditor]; if (!config.image) return; document.querySelector('.line-control-btn[data-line="top"]').classList.toggle('active', config.regions.stretch.top !== null); document.querySelector('.line-control-btn[data-line="left"]').classList.toggle('active', config.regions.stretch.left !== null); }
-        
-        let populatedSpans = {}; function updateInfoPanel() { if (!populatedSpans.imgSize) { populatedSpans = { imgSize: document.getElementById('img-size'), stretch: { horiz: document.getElementById('stretch-horiz'), vert: document.getElementById('stretch-vert') }, content: { top: document.getElementById('content-top'), bottom: document.getElementById('content-bottom'), left: document.getElementById('content-left'), right: document.getElementById('content-right') } }; } const config = configurations[activeEditor]; if (!config.image) return; populatedSpans.imgSize.textContent = `${config.image.width} x ${config.image.height} px`; const s = config.regions.stretch; populatedSpans.stretch.horiz.textContent = (s.left !== null) ? `${Math.round(s.left)} - ${Math.round(s.right)}` : '固定'; populatedSpans.stretch.vert.textContent = (s.top !== null) ? `${Math.round(s.top)} - ${Math.round(s.bottom)}` : '固定'; const c = config.regions.content; ['top', 'bottom', 'left', 'right'].forEach(line => { populatedSpans.content[line].textContent = c[line] !== null ? Math.round(c[line]) : 'N/A'; }); }
-        
-        function updatePreview() { const config = configurations[activeEditor]; if (!config.image) return; const { width: w, height: h } = config.image; const sr = config.regions.stretch; const cr = config.regions.content; const slice = { top: (sr.top !== null) ? Math.round(sr.top) : 0, right: (sr.left !== null) ? Math.round(w - sr.right) : 0, bottom: (sr.top !== null) ? Math.round(h - sr.bottom) : 0, left: (sr.left !== null) ? Math.round(sr.left) : 0 }; const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100)); const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) }; const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 }; previewBox.style.borderImageSource = `url('${config.image.src}')`; previewBox.style.borderImageSlice = `${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill`; previewBox.style.borderImageWidth = `${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px`; previewContentArea.style.top = `${padding.top}px`; previewContentArea.style.right = `${padding.right}px`; previewContentArea.style.bottom = `${padding.bottom}px`; previewContentArea.style.left = `${padding.left}px`; widthSlider.disabled = (sr.left === null); heightSlider.disabled = (sr.top === null); }
-        
-        function setupCanvas() { const img = configurations[activeEditor].image; if (!img) return; canvas.width = img.width + 2; canvas.height = img.height + 2; }
-        
-        function resetRegions(editor, mode = 'all') { const img = configurations[editor].image; if (!img) return; const w = img.width; const h = img.height; if (mode === 'all' || mode === 'stretch') { configurations[editor].regions.stretch = { top: h * 0.25, bottom: h * 0.75, left: w * 0.25, right: w * 0.75 }; } if (mode === 'all' || mode === 'content') { configurations[editor].regions.content = { top: h * 0.25, bottom: h * 0.75, left: w * 0.25, right: w * 0.75 }; } }
-        
-        function redrawAll() { const config = configurations[activeEditor]; if (!config.image) return; const mainContent = document.querySelector('.main-content'); const ratioX = mainContent.clientWidth / canvas.width; const ratioY = mainContent.clientHeight / canvas.height; scale = Math.min(ratioX, ratioY) * 0.9; canvas.style.transform = `scale(${scale})`; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(config.image, 1, 1); drawNinePatchBorders(); drawGuideLines(); updateLineButtons(); }
-        
-        function drawNinePatchBorders() { const config = configurations[activeEditor]; if (!config.image) return; const s = config.regions.stretch; const c = config.regions.content; ctx.fillStyle = '#000000'; if (s.left !== null) ctx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) ctx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) ctx.fillRect(Math.round(c.left) + 1, canvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) ctx.fillRect(canvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); }
-        
-        function drawGuideLines() { const config = configurations[activeEditor]; if (!config.image) return; const r = config.regions[currentMode]; const color = getComputedStyle(document.documentElement).getPropertyValue(`--${currentMode}-color`); ctx.strokeStyle = color; ctx.lineWidth = 1 / scale; ctx.setLineDash([4 / scale, 3 / scale]); if (r.left !== null) { ctx.beginPath(); ctx.moveTo(r.left + 1, 1); ctx.lineTo(r.left + 1, config.image.height + 1); ctx.stroke(); } if (r.right !== null) { ctx.beginPath(); ctx.moveTo(r.right + 1, 1); ctx.lineTo(r.right + 1, config.image.height + 1); ctx.stroke(); } if (r.top !== null) { ctx.beginPath(); ctx.moveTo(1, r.top + 1); ctx.lineTo(config.image.width + 1, r.top + 1); ctx.stroke(); } if (r.bottom !== null) { ctx.beginPath(); ctx.moveTo(1, r.bottom + 1); ctx.lineTo(config.image.width + 1, r.bottom + 1); ctx.stroke(); } ctx.setLineDash([]); }
-        
-        function getEventPos(e) { const rect = canvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: (clientX - rect.left) / scale - 1, y: (clientY - rect.top) / scale - 1, }; }
-        
-        function onDown(e) { const config = configurations[activeEditor]; if (!config.image) return; e.preventDefault(); const pos = getEventPos(e); const r = config.regions[currentMode]; const threshold = TOUCH_THRESHOLD / scale; const dists = {}; if(r.top !== null) dists.top = Math.abs(pos.y - r.top); if(r.bottom !== null) dists.bottom = Math.abs(pos.y - r.bottom); if(r.left !== null) dists.left = Math.abs(pos.x - r.left); if(r.right !== null) dists.right = Math.abs(pos.x - r.right); let min_dist = Infinity; let closest_line = null; for (const [line, dist] of Object.entries(dists)) { if (dist < min_dist) { min_dist = dist; closest_line = line; } } if (min_dist < threshold) { isDragging = true; draggingLine = closest_line; } }
-        
-        function onUp() { isDragging = false; draggingLine = null; }
-        
-        function openDownloadModal() {
-            const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
-            document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none';
-            document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none';
-            document.getElementById('download-ai-btn').disabled = !hasAi && !hasUser;
-            document.getElementById('download-user-btn').disabled = !hasAi && !hasUser;
-            document.getElementById('download-full-css-btn').disabled = !(hasAi || hasUser);
-            document.getElementById('download-code-btn').disabled = !(hasAi || hasUser);
-            document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
-            modal.style.display = 'flex';
-        }
-        
-        function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const dataUrl = tempCanvas.toDataURL('image/png'); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = dataUrl; link.click(); }
-        
-        // =====================================================================================
-        // ✨ [核心修正 2] 统一使用用户输入的“缩放比例”进行计算 ✨
-        // =====================================================================================
-        function generateBubbleCss(config) {
-            const scaleFactorInput = document.getElementById('scale-factor-input');
-            const scaleFactor = parseFloat(scaleFactorInput.value) || 18; // 使用输入框的值，默认为18
-
-            const { image, regions } = config;
-            const { width: w, height: h } = image;
-            const sr = regions.stretch;
-            const cr = regions.content;
-            const isHorizontalOnlyStretch = sr.left !== null && sr.top === null;
-
-            let sliceTop, sliceRight, sliceBottom, sliceLeft;
-            let borderWidthTop, borderWidthRight, borderWidthBottom, borderWidthLeft;
-            let paddingTop, paddingRight, paddingBottom, paddingLeft;
-            let extraStyles = '', comment = '';
-
-            if (isHorizontalOnlyStretch) {
-                comment = `/*\n * 核心样式 - 固定高度、可水平拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${Math.round(sr.left)}-${Math.round(sr.right)}, V-拉伸: 固定\n */`;
-                sliceTop = 0; sliceRight = Math.round(w - sr.right); sliceBottom = 0; sliceLeft = Math.round(sr.left);
-                borderWidthTop = '0px'; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = '0px'; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
-                extraStyles = `\n            height: ${Math.round(h / scaleFactor)}px;\n            width: fit-content;\n            white-space: nowrap;\n            display: flex;\n            align-items: center;`;
-            } else {
-                comment = `/*\n * 核心样式 - 通用拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${sr.left !== null ? `${Math.round(sr.left)}-${Math.round(sr.right)}` : '固定'}, V-拉伸: ${sr.top !== null ? `${Math.round(sr.top)}-${Math.round(sr.bottom)}` : '固定'}\n */`;
-                sliceTop = sr.top !== null ? Math.round(sr.top) : 0; sliceRight = sr.left !== null ? Math.round(w - sr.right) : 0; sliceBottom = sr.top !== null ? Math.round(h - sr.bottom) : 0; sliceLeft = sr.left !== null ? Math.round(sr.left) : 0;
-                borderWidthTop = `${Math.round(sliceTop / scaleFactor)}px`; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = `${Math.round(sliceBottom / scaleFactor)}px`; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
-                const isFixed = sr.left === null && sr.top === null; const isVerticalOnlyStretch = sr.left === null && sr.top !== null;
-                if (isFixed) { extraStyles = `width: ${Math.round(w / scaleFactor)}px; height: ${Math.round(h / scaleFactor)}px;`; } 
-                else if (isVerticalOnlyStretch) { extraStyles = `width: ${Math.round(w / scaleFactor)}px;`; } 
-                else { extraStyles = 'width: fit-content; max-width: 80%; word-wrap: break-word;'; }
-            }
-            paddingTop = Math.round(cr.top / scaleFactor); paddingRight = Math.round((w - cr.right) / scaleFactor); paddingBottom = Math.round((h - cr.bottom) / scaleFactor); paddingLeft = Math.round(cr.left / scaleFactor);
-            const baseStyle = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000;${extraStyles}`;
-            const bubbleStyle = `border-image-slice: ${sliceTop} ${sliceRight} ${sliceBottom} ${sliceLeft} fill; border-image-width: ${borderWidthTop} ${borderWidthRight} ${borderWidthBottom} ${borderWidthLeft}; padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;`;
-            return { baseStyle, bubbleStyle, comment };
-        }
-
-        function generateHtmlCode() {
-            const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
-            if (!hasAi && !hasUser) { alert('请至少上传一张图片！'); return null; }
-            const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value;
-            let combinedStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
-
-            if (hasAi && hasUser) {
-                const aiData = generateBubbleCss(configurations.ai); const userData = generateBubbleCss(configurations.user);
-                const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
-                if (!aiUrl || !userUrl) { alert('请输入AI和User两张图片的URL！'); return null; }
-                combinedStyle = `${aiData.comment}\n.bubble.left { align-self: flex-start; ${aiData.baseStyle} border-image-source: url('${aiUrl}'); ${aiData.bubbleStyle} }\n${userData.comment}\n.bubble.right { align-self: flex-end; ${userData.baseStyle} border-image-source: url('${userUrl}'); ${userData.bubbleStyle} }`;
-                transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-            } else {
-                const singleConfig = hasAi ? configurations.ai : configurations.user;
-                const singleUrl = hasAi ? document.getElementById('ai-url-input').value : document.getElementById('user-url-input').value;
-                if (!singleUrl) { alert('请输入已上传图片的URL！'); return null; }
-                const data = generateBubbleCss(singleConfig); 
-                const selectedSide = document.querySelector('input[name="side"]:checked').value;
-                const base = `${data.baseStyle} border-image-source: url('${singleUrl}'); ${data.bubbleStyle}`;
-                if (selectedSide === 'left') {
-                    combinedStyle = `${data.comment}\n.bubble.left { align-self: flex-start; ${base} }\n/* 右侧气泡通过左侧气泡水平翻转生成 */\n.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
-                    transformStyle = `.bubble.right .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                } else if (selectedSide === 'right') {
-                    combinedStyle = `${data.comment}\n.bubble.right { align-self: flex-end; ${base} }\n/* 左侧气泡通过右侧气泡水平翻转生成 */\n.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
-                    transformStyle = `.bubble.left .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                } else { // 'center'
-                    combinedStyle = `${data.comment}\n/* “居中”模式下，左右气泡使用相同样式，不翻转 */\n.bubble.left, .bubble.right { ${base} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
-                    transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+    function switchEditor(editor) { if (activeEditor === editor) return; activeEditor = editor; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.tab-btn[data-editor="${editor}"]`).classList.add('active'); document.getElementById('open-file-label').htmlFor = `file-input-${editor}`; updateEditorState(); }
+    
+    function handleFileSelect(e, editor) {
+        const file = e.target.files[0]; if (!file) return;
+        const config = configurations[editor];
+        config.fileName = file.name;
+        const reader = new FileReader();
+        reader.onload = event => {
+            const img = new Image();
+            img.onload = () => {
+                config.image = img;
+                if (editor === activeEditor) {
+                    updateEditorState();
                 }
-            }
-            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
-        };
-        function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
-        
-        async function downloadEphoneCss(target) {
-            const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
-            if (!bubbleName) { alert("已取消下载。"); return; }
-            
-            // ✨ 核心修正 3: 统一从输入框获取缩放比例 ✨
-            const scaleFactorInput = document.getElementById('scale-factor-input');
-            const scaleFactor = parseFloat(scaleFactorInput.value) || 18;
-
-            const processConfig = (config, color) => {
-                const { image, regions } = config; const { width: w, height: h } = image; const sr = regions.stretch; const cr = regions.content;
-                const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null;
-                const slice = { top: stretchVert ? Math.round(sr.top) : 0, right: stretchHoriz ? Math.round(w - sr.right) : 0, bottom: stretchVert ? Math.round(h - sr.bottom) : 0, left: stretchHoriz ? Math.round(sr.left) : 0 };
-                // 使用传入的 scaleFactor，而不是重新计算
-                const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
-                const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
-                return { slice, borderWidth, padding, color };
+                sideSelectorFieldset.disabled = !!(configurations.ai.image && configurations.user.image);
             };
-            
-            const aiColor = document.getElementById('ai-color-input').value; const userColor = document.getElementById('user-color-input').value;
-            const header = `/*\n * =======================================================\n *   气泡样式: ${bubbleName}\n *   - 作者: 酱酱\n *   - 声明: 所有素材均来自于本人，禁止二传二改\n * =======================================================\n*/\n\n`;
-            const baseRules = `.message-bubble.user .content,\n.message-bubble.ai .content { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; position: relative; z-index: 1; }\n.message-bubble.user .content::before,\n.message-bubble.ai .content::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-style: solid; border-image-repeat: repeat; }\n`;
-            let aiCss = '', userCss = '';
-            
-            const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function updateEditorState() { const config = configurations[activeEditor]; if (config.image) { placeholder.style.display = 'none'; canvas.style.display = 'block'; infoPanel.style.display = 'block'; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; document.getElementById('clear-btn').disabled = false; document.getElementById('toggle-preview-btn').disabled = false; document.getElementById('download-trigger-btn').disabled = false; setupCanvas(); if(!config.regions.content.top) { resetRegions(activeEditor, 'all'); } redrawAll(); updateInfoPanel(); setupPreview(config.image); updatePreview(); } else { canvas.style.display = 'none'; infoPanel.style.display = 'none'; stretchLineControls.style.display = 'none'; placeholder.style.display = 'block'; document.getElementById('clear-btn').disabled = true; document.getElementById('toggle-preview-btn').disabled = true; document.getElementById('download-trigger-btn').disabled = true; } }
+    
+    function onMove(e) { const config = configurations[activeEditor]; if (!isDragging || !draggingLine || !config.image) return; e.preventDefault(); const pos = getEventPos(e); const r = config.regions[currentMode]; const w = config.image.width; const h = config.image.height; if (draggingLine === 'top') r.top = Math.max(0, Math.min(pos.y, r.bottom ?? h)); else if (draggingLine === 'bottom') r.bottom = Math.min(h, Math.max(pos.y, r.top ?? 0)); else if (draggingLine === 'left') r.left = Math.max(0, Math.min(pos.x, r.right ?? w)); else if (draggingLine === 'right') r.right = Math.min(w, Math.max(pos.x, r.left ?? 0)); redrawAll(); updateInfoPanel(); updatePreview(); }
+    
+    function toggleStretchLine(line) { const config = configurations[activeEditor]; if (!config.image) return; const w = config.image.width; const h = config.image.height; const s = config.regions.stretch; const isVertical = line === 'top'; const isHorizontal = line === 'left'; if ((isVertical && s.top !== null) || (isHorizontal && s.left !== null)) { if (isVertical) { s.top = s.bottom = null; } if (isHorizontal) { s.left = s.right = null; } } else { if (isVertical) { s.top = h * 0.25; s.bottom = h * 0.75; } if (isHorizontal) { s.left = w * 0.25; s.right = w * 0.75; } } redrawAll(); updateInfoPanel(); updatePreview(); }
+    
+    function setupPreview(image) { const maxPreviewDim = 280; let initialWidth, initialHeight; const ratio = image.width / image.height; if (ratio > 1) { initialWidth = Math.min(image.width, maxPreviewDim); initialHeight = initialWidth / ratio; } else { initialHeight = Math.min(image.height, maxPreviewDim); initialWidth = initialHeight * ratio; } initialWidth = Math.round(initialWidth); initialHeight = Math.round(initialHeight); widthSlider.min = initialWidth; widthSlider.max = 500; widthSlider.value = initialWidth; heightSlider.min = initialHeight; heightSlider.max = 500; heightSlider.value = initialHeight; previewBox.style.width = `${initialWidth}px`; previewBox.style.height = `${initialHeight}px`; }
+    
+    function updateLineButtons() { const config = configurations[activeEditor]; if (!config.image) return; document.querySelector('.line-control-btn[data-line="top"]').classList.toggle('active', config.regions.stretch.top !== null); document.querySelector('.line-control-btn[data-line="left"]').classList.toggle('active', config.regions.stretch.left !== null); }
+    
+    let populatedSpans = {}; function updateInfoPanel() { if (!populatedSpans.imgSize) { populatedSpans = { imgSize: document.getElementById('img-size'), stretch: { horiz: document.getElementById('stretch-horiz'), vert: document.getElementById('stretch-vert') }, content: { top: document.getElementById('content-top'), bottom: document.getElementById('content-bottom'), left: document.getElementById('content-left'), right: document.getElementById('content-right') } }; } const config = configurations[activeEditor]; if (!config.image) return; populatedSpans.imgSize.textContent = `${config.image.width} x ${config.image.height} px`; const s = config.regions.stretch; populatedSpans.stretch.horiz.textContent = (s.left !== null) ? `${Math.round(s.left)} - ${Math.round(s.right)}` : '固定'; populatedSpans.stretch.vert.textContent = (s.top !== null) ? `${Math.round(s.top)} - ${Math.round(s.bottom)}` : '固定'; const c = config.regions.content; ['top', 'bottom', 'left', 'right'].forEach(line => { populatedSpans.content[line].textContent = c[line] !== null ? Math.round(c[line]) : 'N/A'; }); }
+    
+    function updatePreview() { const config = configurations[activeEditor]; if (!config.image) return; const { width: w, height: h } = config.image; const sr = config.regions.stretch; const cr = config.regions.content; const slice = { top: (sr.top !== null) ? Math.round(sr.top) : 0, right: (sr.left !== null) ? Math.round(w - sr.right) : 0, bottom: (sr.top !== null) ? Math.round(h - sr.bottom) : 0, left: (sr.left !== null) ? Math.round(sr.left) : 0 }; const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100)); const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) }; const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 }; previewBox.style.borderImageSource = `url('${config.image.src}')`; previewBox.style.borderImageSlice = `${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill`; previewBox.style.borderImageWidth = `${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px`; previewContentArea.style.top = `${padding.top}px`; previewContentArea.style.right = `${padding.right}px`; previewContentArea.style.bottom = `${padding.bottom}px`; previewContentArea.style.left = `${padding.left}px`; widthSlider.disabled = (sr.left === null); heightSlider.disabled = (sr.top === null); }
+    
+    function setupCanvas() { const img = configurations[activeEditor].image; if (!img) return; canvas.width = img.width + 2; canvas.height = img.height + 2; }
+    
+    function resetRegions(editor, mode = 'all') { const img = configurations[editor].image; if (!img) return; const w = img.width; const h = img.height; if (mode === 'all' || mode === 'stretch') { configurations[editor].regions.stretch = { top: h * 0.25, bottom: h * 0.75, left: w * 0.25, right: w * 0.75 }; } if (mode === 'all' || mode === 'content') { configurations[editor].regions.content = { top: h * 0.25, bottom: h * 0.75, left: w * 0.25, right: w * 0.75 }; } }
+    
+    function redrawAll() { const config = configurations[activeEditor]; if (!config.image) return; const mainContent = document.querySelector('.main-content'); const ratioX = mainContent.clientWidth / canvas.width; const ratioY = mainContent.clientHeight / canvas.height; scale = Math.min(ratioX, ratioY) * 0.9; canvas.style.transform = `scale(${scale})`; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(config.image, 1, 1); drawNinePatchBorders(); drawGuideLines(); updateLineButtons(); }
+    
+    function drawNinePatchBorders() { const config = configurations[activeEditor]; if (!config.image) return; const s = config.regions.stretch; const c = config.regions.content; ctx.fillStyle = '#000000'; if (s.left !== null) ctx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) ctx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) ctx.fillRect(Math.round(c.left) + 1, canvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) ctx.fillRect(canvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); }
+    
+    function drawGuideLines() { const config = configurations[activeEditor]; if (!config.image) return; const r = config.regions[currentMode]; const color = getComputedStyle(document.documentElement).getPropertyValue(`--${currentMode}-color`); ctx.strokeStyle = color; ctx.lineWidth = 1 / scale; ctx.setLineDash([4 / scale, 3 / scale]); if (r.left !== null) { ctx.beginPath(); ctx.moveTo(r.left + 1, 1); ctx.lineTo(r.left + 1, config.image.height + 1); ctx.stroke(); } if (r.right !== null) { ctx.beginPath(); ctx.moveTo(r.right + 1, 1); ctx.lineTo(r.right + 1, config.image.height + 1); ctx.stroke(); } if (r.top !== null) { ctx.beginPath(); ctx.moveTo(1, r.top + 1); ctx.lineTo(config.image.width + 1, r.top + 1); ctx.stroke(); } if (r.bottom !== null) { ctx.beginPath(); ctx.moveTo(1, r.bottom + 1); ctx.lineTo(config.image.width + 1, r.bottom + 1); ctx.stroke(); } ctx.setLineDash([]); }
+    
+    function getEventPos(e) { const rect = canvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: (clientX - rect.left) / scale - 1, y: (clientY - rect.top) / scale - 1, }; }
+    
+    function onDown(e) { const config = configurations[activeEditor]; if (!config.image) return; e.preventDefault(); const pos = getEventPos(e); const r = config.regions[currentMode]; const threshold = TOUCH_THRESHOLD / scale; const dists = {}; if(r.top !== null) dists.top = Math.abs(pos.y - r.top); if(r.bottom !== null) dists.bottom = Math.abs(pos.y - r.bottom); if(r.left !== null) dists.left = Math.abs(pos.x - r.left); if(r.right !== null) dists.right = Math.abs(pos.x - r.right); let min_dist = Infinity; let closest_line = null; for (const [line, dist] of Object.entries(dists)) { if (dist < min_dist) { min_dist = dist; closest_line = line; } } if (min_dist < threshold) { isDragging = true; draggingLine = closest_line; } }
+    
+    function onUp() { isDragging = false; draggingLine = null; }
+    
+    function openDownloadModal() {
+        const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
+        document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none';
+        document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none';
+        
+        // ✨ 核心修正 3: 启用/禁用所有下载按钮 ✨
+        const canDownloadCss = hasAi || hasUser;
+        document.getElementById('download-ai-btn').disabled = !canDownloadCss;
+        document.getElementById('download-user-btn').disabled = !canDownloadCss;
+        document.getElementById('download-full-css-btn').disabled = !canDownloadCss;
+        document.getElementById('download-code-btn').disabled = !canDownloadCss;
+        document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
+
+        modal.style.display = 'flex';
+    }
+    
+    function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const dataUrl = tempCanvas.toDataURL('image/png'); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = dataUrl; link.click(); }
+    
+    // ✨ 核心修正 4: 替换为更完善的 CSS 生成和下载函数 ✨
+    function generateBubbleCss(config) {
+        const scaleFactorInput = document.getElementById('scale-factor-input');
+        const scaleFactor = parseFloat(scaleFactorInput.value) || 18;
+
+        const { image, regions } = config;
+        const { width: w, height: h } = image;
+        const sr = regions.stretch;
+        const cr = regions.content;
+        const isHorizontalOnlyStretch = sr.left !== null && sr.top === null;
+
+        let sliceTop, sliceRight, sliceBottom, sliceLeft;
+        let borderWidthTop, borderWidthRight, borderWidthBottom, borderWidthLeft;
+        let paddingTop, paddingRight, paddingBottom, paddingLeft;
+        let extraStyles = '', comment = '';
+
+        if (isHorizontalOnlyStretch) {
+            comment = `/*\n * 核心样式 - 固定高度、可水平拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${Math.round(sr.left)}-${Math.round(sr.right)}, V-拉伸: 固定\n */`;
+            sliceTop = 0; sliceRight = Math.round(w - sr.right); sliceBottom = 0; sliceLeft = Math.round(sr.left);
+            borderWidthTop = '0px'; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = '0px'; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
+            extraStyles = `\n            height: ${Math.round(h / scaleFactor)}px;\n            width: fit-content;\n            white-space: nowrap;\n            display: flex;\n            align-items: center;`;
+        } else {
+            comment = `/*\n * 核心样式 - 通用拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${sr.left !== null ? `${Math.round(sr.left)}-${Math.round(sr.right)}` : '固定'}, V-拉伸: ${sr.top !== null ? `${Math.round(sr.top)}-${Math.round(sr.bottom)}` : '固定'}\n */`;
+            sliceTop = sr.top !== null ? Math.round(sr.top) : 0; sliceRight = sr.left !== null ? Math.round(w - sr.right) : 0; sliceBottom = sr.top !== null ? Math.round(h - sr.bottom) : 0; sliceLeft = sr.left !== null ? Math.round(sr.left) : 0;
+            borderWidthTop = `${Math.round(sliceTop / scaleFactor)}px`; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = `${Math.round(sliceBottom / scaleFactor)}px`; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
+            const isFixed = sr.left === null && sr.top === null; const isVerticalOnlyStretch = sr.left === null && sr.top !== null;
+            if (isFixed) { extraStyles = `width: ${Math.round(w / scaleFactor)}px; height: ${Math.round(h / scaleFactor)}px;`; } 
+            else if (isVerticalOnlyStretch) { extraStyles = `width: ${Math.round(w / scaleFactor)}px;`; } 
+            else { extraStyles = 'width: fit-content; max-width: 80%; word-wrap: break-word;'; }
+        }
+        paddingTop = Math.round(cr.top / scaleFactor); paddingRight = Math.round((w - cr.right) / scaleFactor); paddingBottom = Math.round((h - cr.bottom) / scaleFactor); paddingLeft = Math.round(cr.left / scaleFactor);
+        const baseStyle = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000;${extraStyles}`;
+        const bubbleStyle = `border-image-slice: ${sliceTop} ${sliceRight} ${sliceBottom} ${sliceLeft} fill; border-image-width: ${borderWidthTop} ${borderWidthRight} ${borderWidthBottom} ${borderWidthLeft}; padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;`;
+        return { baseStyle, bubbleStyle, comment };
+    }
+
+    function generateHtmlCode() {
+        const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
+        if (!hasAi && !hasUser) { alert('请至少上传一张图片！'); return null; }
+        const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value;
+        let combinedStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
+
+        if (hasAi && hasUser) {
+            const aiData = generateBubbleCss(configurations.ai); const userData = generateBubbleCss(configurations.user);
             const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
-
-            if (hasAi && hasUser) {
-                if(target === 'ai' || target === 'full') {
-                    if(!aiUrl){ alert('请输入AI图片的URL！'); return; }
-                    const data = processConfig(configurations.ai, aiColor);
-                    aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-source: url('${aiUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.ai .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
-                }
-                if(target === 'user' || target === 'full') {
-                    if(!userUrl){ alert('请输入User图片的URL！'); return; }
-                    const data = processConfig(configurations.user, userColor);
-                    userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-source: url('${userUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.user .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
-                }
-            } else if (hasAi || hasUser) {
-                const singleConfig = hasAi ? configurations.ai : configurations.user;
-                const singleUrl = hasAi ? aiUrl : userUrl;
-                if (!singleUrl) { alert('请输入已上传图片的URL！'); return; }
-                const selectedSide = document.querySelector('input[name="side"]:checked').value;
-                const data = processConfig(singleConfig, '#_placeholder_#');
-                const flippedPadding = `${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px`;
-                const beforeStyle = `border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px;`;
-                const aiPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${aiColor};`;
-                const userPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${userColor};`;
-                const aiFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${aiColor};`;
-                const userFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${userColor};`;
-
-                switch (selectedSide) {
-                    case 'left':
-                        aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { ${beforeStyle} }\n.message-bubble.ai .content { ${aiPaddingStyle} }\n`;
-                        userCss = `\n/* --- 用户气泡 (右侧 - 翻转) --- */\n.message-bubble.user .content::before { ${beforeStyle} transform: scaleX(-1); }\n.message-bubble.user .content { ${userFlippedPaddingStyle} }\n`;
-                        break;
-                    case 'right':
-                        aiCss = `\n/* --- AI气泡 (左侧 - 翻转) --- */\n.message-bubble.ai .content::before { ${beforeStyle} transform: scaleX(-1); }\n.message-bubble.ai .content { ${aiFlippedPaddingStyle} }\n`;
-                        userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { ${beforeStyle} }\n.message-bubble.user .content { ${userPaddingStyle} }\n`;
-                        break;
-                    case 'center':
-                        aiCss = `\n/* --- AI气泡 (左侧 - 居中模板) --- */\n.message-bubble.ai .content::before { ${beforeStyle} }\n.message-bubble.ai .content { ${aiPaddingStyle} }\n`;
-                        userCss = `\n/* --- 用户气泡 (右侧 - 居中模板) --- */\n.message-bubble.user .content::before { ${beforeStyle} }\n.message-bubble.user .content { ${userPaddingStyle} }\n`;
-                        break;
-                }
+            if (!aiUrl || !userUrl) { alert('请输入AI和User两张图片的URL！'); return null; }
+            combinedStyle = `${aiData.comment}\n.bubble.left { align-self: flex-start; ${aiData.baseStyle} border-image-source: url('${aiUrl}'); ${aiData.bubbleStyle} }\n${userData.comment}\n.bubble.right { align-self: flex-end; ${userData.baseStyle} border-image-source: url('${userUrl}'); ${userData.bubbleStyle} }`;
+            transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+        } else {
+            const singleConfig = hasAi ? configurations.ai : configurations.user;
+            const singleUrl = hasAi ? document.getElementById('ai-url-input').value : document.getElementById('user-url-input').value;
+            if (!singleUrl) { alert('请输入已上传图片的URL！'); return null; }
+            const data = generateBubbleCss(singleConfig); 
+            const selectedSide = document.querySelector('input[name="side"]:checked').value;
+            const base = `${data.baseStyle} border-image-source: url('${singleUrl}'); ${data.bubbleStyle}`;
+            if (selectedSide === 'left') {
+                combinedStyle = `${data.comment}\n.bubble.left { align-self: flex-start; ${base} }\n/* 右侧气泡通过左侧气泡水平翻转生成 */\n.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
+                transformStyle = `.bubble.right .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+            } else if (selectedSide === 'right') {
+                combinedStyle = `${data.comment}\n.bubble.right { align-self: flex-end; ${base} }\n/* 左侧气泡通过右侧气泡水平翻转生成 */\n.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
+                transformStyle = `.bubble.left .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+            } else { // 'center'
+                combinedStyle = `${data.comment}\n/* “居中”模式下，左右气泡使用相同样式，不翻转 */\n.bubble.left, .bubble.right { ${base} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
+                transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
             }
+        }
+        return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
+    };
+    function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
+    
+    async function downloadEphoneCss(target) {
+        const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
+        if (!bubbleName) { alert("已取消下载。"); return; }
+        
+        const scaleFactorInput = document.getElementById('scale-factor-input');
+        const scaleFactor = parseFloat(scaleFactorInput.value) || 18;
 
-            let finalCss = '';
-            if (target === 'ai') finalCss = header + baseRules + aiCss;
-            else if (target === 'user') finalCss = header + baseRules + userCss;
-            else finalCss = header + baseRules + aiCss + userCss;
-            
-            const blob = new Blob([finalCss], { type: 'text/plain' }); const link = document.createElement('a'); let fileName = `${bubbleName.trim()}-EPhone-Style`; if (target === 'ai') fileName += '-AI'; if (target === 'user') fileName += '-User'; link.download = `${fileName}.txt`; link.href = URL.createObjectURL(blob); link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none';
+        const processConfig = (config, color) => {
+            const { image, regions } = config; const { width: w, height: h } = image; const sr = regions.stretch; const cr = regions.content;
+            const stretchVert = sr.top !== null; const stretchHoriz = sr.left !== null;
+            const slice = { top: stretchVert ? Math.round(sr.top) : 0, right: stretchHoriz ? Math.round(w - sr.right) : 0, bottom: stretchVert ? Math.round(h - sr.bottom) : 0, left: stretchHoriz ? Math.round(sr.left) : 0 };
+            const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
+            const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
+            return { slice, borderWidth, padding, color };
+        };
+        
+        const aiColor = document.getElementById('ai-color-input').value; const userColor = document.getElementById('user-color-input').value;
+        const header = `/*\n * =======================================================\n *   气泡样式: ${bubbleName}\n *   - 作者: 酱酱\n *   - 声明: 所有素材均来自于本人，禁止二传二改\n * =======================================================\n*/\n\n`;
+        const baseRules = `.message-bubble.user .content,\n.message-bubble.ai .content { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; position: relative; z-index: 1; }\n.message-bubble.user .content::before,\n.message-bubble.ai .content::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-style: solid; border-image-repeat: repeat; }\n`;
+        let aiCss = '', userCss = '';
+        
+        const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
+        const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
+
+        if (hasAi && hasUser) {
+            if(target === 'ai' || target === 'full') {
+                if(!aiUrl){ alert('请输入AI图片的URL！'); return; }
+                const data = processConfig(configurations.ai, aiColor);
+                aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { border-image-source: url('${aiUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.ai .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
+            }
+            if(target === 'user' || target === 'full') {
+                if(!userUrl){ alert('请输入User图片的URL！'); return; }
+                const data = processConfig(configurations.user, userColor);
+                userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { border-image-source: url('${userUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px; }\n.message-bubble.user .content { padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${data.color}; }\n`;
+            }
+        } else if (hasAi || hasUser) {
+            const singleConfig = hasAi ? configurations.ai : configurations.user;
+            const singleUrl = hasAi ? aiUrl : userUrl;
+            if (!singleUrl) { alert('请输入已上传图片的URL！'); return; }
+            const selectedSide = document.querySelector('input[name="side"]:checked').value;
+            const data = processConfig(singleConfig, '#_placeholder_#');
+            const flippedPadding = `${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px`;
+            const beforeStyle = `border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px;`;
+            const aiPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${aiColor};`;
+            const userPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${userColor};`;
+            const aiFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${aiColor};`;
+            const userFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${userColor};`;
+
+            switch (selectedSide) {
+                case 'left':
+                    aiCss = `\n/* --- AI气泡 (左侧) --- */\n.message-bubble.ai .content::before { ${beforeStyle} }\n.message-bubble.ai .content { ${aiPaddingStyle} }\n`;
+                    userCss = `\n/* --- 用户气泡 (右侧 - 翻转) --- */\n.message-bubble.user .content::before { ${beforeStyle} transform: scaleX(-1); }\n.message-bubble.user .content { ${userFlippedPaddingStyle} }\n`;
+                    break;
+                case 'right':
+                    aiCss = `\n/* --- AI气泡 (左侧 - 翻转) --- */\n.message-bubble.ai .content::before { ${beforeStyle} transform: scaleX(-1); }\n.message-bubble.ai .content { ${aiFlippedPaddingStyle} }\n`;
+                    userCss = `\n/* --- 用户气泡 (右侧) --- */\n.message-bubble.user .content::before { ${beforeStyle} }\n.message-bubble.user .content { ${userPaddingStyle} }\n`;
+                    break;
+                case 'center':
+                    aiCss = `\n/* --- AI气泡 (左侧 - 居中模板) --- */\n.message-bubble.ai .content::before { ${beforeStyle} }\n.message-bubble.ai .content { ${aiPaddingStyle} }\n`;
+                    userCss = `\n/* --- 用户气泡 (右侧 - 居中模板) --- */\n.message-bubble.user .content::before { ${beforeStyle} }\n.message-bubble.user .content { ${userPaddingStyle} }\n`;
+                    break;
+            }
         }
 
-        init();
-        window.addEventListener('resize', redrawAll);
-    });
-    </script>
+        let finalCss = '';
+        if (target === 'ai') finalCss = header + baseRules + aiCss;
+        else if (target === 'user') finalCss = header + baseRules + userCss;
+        else if (target === 'full') finalCss = header + baseRules + aiCss + userCss;
+        
+        const blob = new Blob([finalCss], { type: 'text/plain' }); const link = document.createElement('a'); let fileName = `${bubbleName.trim()}-EPhone-Style`; if (target === 'ai') fileName += '-AI'; if (target === 'user') fileName += '-User'; link.download = `${fileName}.txt`; link.href = URL.createObjectURL(blob); link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none';
+    }
+
+    init();
+    window.addEventListener('resize', redrawAll);
+});
+</script>
 </body>
 </html>
