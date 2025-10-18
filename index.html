@@ -188,7 +188,6 @@
             document.getElementById('clear-btn').addEventListener('click', () => { if (!configurations[activeEditor].image) return; resetRegions(activeEditor, currentMode); setupPreview(configurations[activeEditor].image); redrawAll(); updateInfoPanel(); updatePreview(); });
             document.getElementById('download-trigger-btn').addEventListener('click', openDownloadModal);
             
-            // ✨ 核心修正 2: 绑定所有按钮的点击事件，并区分调用函数 ✨
             modal.addEventListener('click', (e) => {
                 const targetId = e.target.id;
                 switch(targetId) {
@@ -201,17 +200,17 @@
                     case 'download-code-btn':
                         downloadCode();
                         break;
-                    // 新增的三个按钮 -> 调用新的函数
+                    // 新增的三个按钮，调用新的下载函数
                     case 'download-receiver-btn':
-                        downloadGlobalBeautyCss('receiver');
+                        downloadAppCss('receiver');
                         break;
                     case 'download-sender-btn':
-                        downloadGlobalBeautyCss('sender');
+                        downloadAppCss('sender');
                         break;
                     case 'download-global-btn':
-                        downloadGlobalBeautyCss('full');
+                        downloadAppCss('global');
                         break;
-                    // 原有的三个按钮 -> 调用旧的函数
+                    // 原有的三个按钮，调用旧的下载函数
                     case 'download-ai-style-btn':
                         downloadEphoneCss('ai');
                         break;
@@ -295,6 +294,7 @@
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none';
             document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none';
+            
             const anyImage = hasAi || hasUser;
             document.getElementById('download-receiver-btn').disabled = !anyImage;
             document.getElementById('download-sender-btn').disabled = !anyImage;
@@ -304,6 +304,7 @@
             document.getElementById('download-full-css-style-btn').disabled = !anyImage;
             document.getElementById('download-code-btn').disabled = !anyImage;
             document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
+            
             modal.style.display = 'flex';
         }
         
@@ -317,31 +318,29 @@
             const { width: w, height: h } = image;
             const sr = regions.stretch;
             const cr = regions.content;
-            const isHorizontalOnlyStretch = sr.left !== null && sr.top === null;
+            
+            const slice = {
+                top: sr.top !== null ? Math.round(sr.top) : 0,
+                right: sr.left !== null ? Math.round(w - sr.right) : 0,
+                bottom: sr.top !== null ? Math.round(h - sr.bottom) : 0,
+                left: sr.left !== null ? Math.round(sr.left) : 0,
+            };
+            
+            const borderWidth = {
+                top: `${Math.round(slice.top / scaleFactor)}px`,
+                right: `${Math.round(slice.right / scaleFactor)}px`,
+                bottom: `${Math.round(slice.bottom / scaleFactor)}px`,
+                left: `${Math.round(slice.left / scaleFactor)}px`,
+            };
 
-            let sliceTop, sliceRight, sliceBottom, sliceLeft;
-            let borderWidthTop, borderWidthRight, borderWidthBottom, borderWidthLeft;
-            let paddingTop, paddingRight, paddingBottom, paddingLeft;
-            let extraStyles = '', comment = '';
+            const padding = {
+                top: `${Math.round(cr.top / scaleFactor)}px`,
+                right: `${Math.round((w - cr.right) / scaleFactor)}px`,
+                bottom: `${Math.round((h - cr.bottom) / scaleFactor)}px`,
+                left: `${Math.round(cr.left / scaleFactor)}px`,
+            };
 
-            if (isHorizontalOnlyStretch) {
-                comment = `/*\n * 核心样式 - 固定高度、可水平拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${Math.round(sr.left)}-${Math.round(sr.right)}, V-拉伸: 固定\n */`;
-                sliceTop = 0; sliceRight = Math.round(w - sr.right); sliceBottom = 0; sliceLeft = Math.round(sr.left);
-                borderWidthTop = '0px'; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = '0px'; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
-                extraStyles = `\n            height: ${Math.round(h / scaleFactor)}px;\n            width: fit-content;\n            white-space: nowrap;\n            display: flex;\n            align-items: center;`;
-            } else {
-                comment = `/*\n * 核心样式 - 通用拉伸\n * 设计蓝图: ${w}w x ${h}h, H-拉伸: ${sr.left !== null ? `${Math.round(sr.left)}-${Math.round(sr.right)}` : '固定'}, V-拉伸: ${sr.top !== null ? `${Math.round(sr.top)}-${Math.round(sr.bottom)}` : '固定'}\n */`;
-                sliceTop = sr.top !== null ? Math.round(sr.top) : 0; sliceRight = sr.left !== null ? Math.round(w - sr.right) : 0; sliceBottom = sr.top !== null ? Math.round(h - sr.bottom) : 0; sliceLeft = sr.left !== null ? Math.round(sr.left) : 0;
-                borderWidthTop = `${Math.round(sliceTop / scaleFactor)}px`; borderWidthRight = `${Math.round(sliceRight / scaleFactor)}px`; borderWidthBottom = `${Math.round(sliceBottom / scaleFactor)}px`; borderWidthLeft = `${Math.round(sliceLeft / scaleFactor)}px`;
-                const isFixed = sr.left === null && sr.top === null; const isVerticalOnlyStretch = sr.left === null && sr.top !== null;
-                if (isFixed) { extraStyles = `width: ${Math.round(w / scaleFactor)}px; height: ${Math.round(h / scaleFactor)}px;`; } 
-                else if (isVerticalOnlyStretch) { extraStyles = `width: ${Math.round(w / scaleFactor)}px;`; } 
-                else { extraStyles = 'width: fit-content; max-width: 80%; word-wrap: break-word;'; }
-            }
-            paddingTop = Math.round(cr.top / scaleFactor); paddingRight = Math.round((w - cr.right) / scaleFactor); paddingBottom = Math.round((h - cr.bottom) / scaleFactor); paddingLeft = Math.round(cr.left / scaleFactor);
-            const baseStyle = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; color: #000;${extraStyles}`;
-            const bubbleStyle = `border-image-slice: ${sliceTop} ${sliceRight} ${sliceBottom} ${sliceLeft} fill; border-image-width: ${borderWidthTop} ${borderWidthRight} ${borderWidthBottom} ${borderWidthLeft}; padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;`;
-            return { baseStyle, bubbleStyle, comment };
+            return { slice, borderWidth, padding };
         }
 
         function generateHtmlCode() {
@@ -349,85 +348,112 @@
             if (!hasAi && !hasUser) { alert('请至少上传一张图片！'); return null; }
             const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value;
             let combinedStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
+            const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
 
             if (hasAi && hasUser) {
-                const aiData = generateBubbleCss(configurations.ai); const userData = generateBubbleCss(configurations.user);
-                const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
                 if (!aiUrl || !userUrl) { alert('请输入AI和User两张图片的URL！'); return null; }
-                combinedStyle = `${aiData.comment}\n.bubble.left { align-self: flex-start; ${aiData.baseStyle} border-image-source: url('${aiUrl}'); ${aiData.bubbleStyle} }\n${userData.comment}\n.bubble.right { align-self: flex-end; ${userData.baseStyle} border-image-source: url('${userUrl}'); ${userData.bubbleStyle} }`;
+                const aiData = generateBubbleCss(configurations.ai);
+                const userData = generateBubbleCss(configurations.user);
+                
+                const aiBase = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
+                const aiBubble = `border-image-source: url('${aiUrl}'); border-image-slice: ${aiData.slice.top} ${aiData.slice.right} ${aiData.slice.bottom} ${aiData.slice.left} fill; border-image-width: ${aiData.borderWidth.top} ${aiData.borderWidth.right} ${aiData.borderWidth.bottom} ${aiData.borderWidth.left}; padding: ${aiData.padding.top} ${aiData.padding.right} ${aiData.padding.bottom} ${aiData.padding.left};`;
+
+                const userBase = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
+                const userBubble = `border-image-source: url('${userUrl}'); border-image-slice: ${userData.slice.top} ${userData.slice.right} ${userData.slice.bottom} ${userData.slice.left} fill; border-image-width: ${userData.borderWidth.top} ${userData.borderWidth.right} ${userData.borderWidth.bottom} ${userData.borderWidth.left}; padding: ${userData.padding.top} ${userData.padding.right} ${userData.padding.bottom} ${userData.padding.left};`;
+
+                combinedStyle = `.bubble.left { align-self: flex-start; ${aiBase} ${aiBubble} }\n.bubble.right { align-self: flex-end; ${userBase} ${userBubble} }`;
                 transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
-                const singleUrl = hasAi ? document.getElementById('ai-url-input').value : document.getElementById('user-url-input').value;
+                const singleUrl = hasAi ? aiUrl : userUrl;
                 if (!singleUrl) { alert('请输入已上传图片的URL！'); return null; }
                 const data = generateBubbleCss(singleConfig); 
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
-                const base = `${data.baseStyle} border-image-source: url('${singleUrl}'); ${data.bubbleStyle}`;
+                const base = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word; border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left}; padding: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left};`;
+
                 if (selectedSide === 'left') {
-                    combinedStyle = `${data.comment}\n.bubble.left { align-self: flex-start; ${base} }\n/* 右侧气泡通过左侧气泡水平翻转生成 */\n.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
+                    combinedStyle = `.bubble.left { align-self: flex-start; ${base} }\n.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
                     transformStyle = `.bubble.right .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
                 } else if (selectedSide === 'right') {
-                    combinedStyle = `${data.comment}\n.bubble.right { align-self: flex-end; ${base} }\n/* 左侧气泡通过右侧气泡水平翻转生成 */\n.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
+                    combinedStyle = `.bubble.right { align-self: flex-end; ${base} }\n.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
                     transformStyle = `.bubble.left .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                } else { // 'center'
-                    combinedStyle = `${data.comment}\n/* “居中”模式下，左右气泡使用相同样式，不翻转 */\n.bubble.left, .bubble.right { ${base} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
+                } else {
+                    combinedStyle = `.bubble.left, .bubble.right { ${base} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
                     transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
                 }
             }
             return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
         };
+
         function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
         
-        // ✨ 核心修正 3: 创建一个全新的函数 `downloadGlobalBeautyCss` ✨
-        // 这个函数专门生成您想要的、可以直接用于“全局美化”的CSS格式
-        async function downloadGlobalBeautyCss(target) {
-            const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的全局气泡"); resolve(name); });
+        // ✨ 核心修正 3: 新增 `downloadAppCss` 函数，用于生成您需要的两种特定格式 ✨
+        async function downloadAppCss(target) {
+            const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称 (用于文件名):", "我的气泡"); resolve(name); });
             if (!bubbleName) { alert("已取消下载。"); return; }
 
             const hasAi = !!configurations.ai.image;
             const hasUser = !!configurations.user.image;
             const aiUrl = document.getElementById('ai-url-input').value;
             const userUrl = document.getElementById('user-url-input').value;
-            let receiverCss = '';
-            let senderCss = '';
+            let finalCss = '';
+            let fileName = bubbleName.trim();
 
-            // 内部帮助函数，用于生成单边的CSS代码
-            const generateStyleForSide = (config, imageUrl, selector) => {
-                const data = generateBubbleCss(config); // 复用现有的计算逻辑
-                return `
-${selector} {
-    border-image-source: url('${imageUrl}') !important;
-    border-image-slice: ${data.bubbleStyle.match(/slice: (.*?);/)[1]} fill !important;
-    border-image-width: ${data.bubbleStyle.match(/width: (.*?);/)[1]} !important;
-    padding: ${data.bubbleStyle.match(/padding: (.*?);/)[1]} !important;
-}`;
-            };
-            
-            // 生成接收方 (AI) 的 CSS
-            if (hasAi) {
-                if (!aiUrl) { alert('请输入AI图片的URL！'); return; }
-                receiverCss = generateStyleForSide(configurations.ai, aiUrl, '#page-conversation .message.received.text,\n#page-conversation .message.received.voice');
-            }
+            const resetAndSharedStyles = `
+    /* --- 关键：重置默认样式 --- */
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border: none !important;
+    border-style: solid !important;
+    box-sizing: border-box !important;
+    color: #000 !important;
+    min-width: 0 !important;
+    line-height: 1.6 !important;
+    font-size: 16px !important;
+    width: fit-content; /* 确保宽度自适应内容 */
+    max-width: 230px; /* 保持最大宽度限制 */`;
 
-            // 生成发送方 (User) 的 CSS
-            if (hasUser) {
-                if (!userUrl) { alert('请输入User图片的URL！'); return; }
-                senderCss = generateStyleForSide(configurations.user, userUrl, '#page-conversation .message.sent.text,\n#page-conversation .message.sent.voice');
-            } else if (hasAi && document.querySelector('input[name="side"]:checked').value !== 'center') {
-                // 如果只有AI图，且不是居中模式，则自动生成翻转的发送方样式
-                senderCss = `
-#page-conversation .message.sent.text,
-#page-conversation .message.sent.voice {
-    transform: scaleX(-1);
+            const sharedChildStyles = `
+/* --- 确保内部元素(如引用消息)颜色正确 --- */
+& * {
+    color: inherit !important;
 }
-#page-conversation .message.sent.text * ,
-#page-conversation .message.sent.voice * {
-    transform: scaleX(-1);
+& .quoted-message-preview {
+    background-color: transparent !important;
+    border-color: rgba(0,0,0,0.2) !important;
 }`;
-            }
 
-            const header = `/* --- ${bubbleName} - 全局美化样式 --- */\n\n`;
-            const baseRules = `/* 1. 强制重置 TEXT 和 VOICE 气泡的基础样式 */
+            if (target === 'receiver' || target === 'sender') { // 生成用于 "自定义气泡" 的 & 格式
+                const isReceiver = target === 'receiver';
+                const config = isReceiver ? configurations.ai : configurations.user;
+                const url = isReceiver ? aiUrl : userUrl;
+
+                if (!config.image) { alert(`请先为 ${isReceiver ? 'AI(左)' : 'User(右)'} 标签页上传图片！`); return; }
+                if (!url) { alert(`请输入 ${isReceiver ? 'AI' : 'User'} 图片的URL！`); return; }
+                
+                const data = generateBubbleCss(config);
+                const borderImageStyle = `
+    /* --- 图片边框样式 --- */
+    border-image-source: url('${url}') !important;
+    border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
+    border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
+    padding: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left} !important;`;
+                
+                finalCss = `& {${resetAndSharedStyles}${borderImageStyle}\n}\n${sharedChildStyles}`;
+                fileName += `-${isReceiver ? '接收方' : '发送方'}-自定义气泡.css`;
+
+            } else if (target === 'global') { // 生成用于 "全局美化" 的格式
+                if (!hasAi || !hasUser) { alert("请确保AI和User两张图片都已上传并设置，才能生成全局样式。"); return; }
+                if (!aiUrl || !userUrl) { alert("请输入AI和User两张图片的URL！"); return; }
+
+                const aiData = generateBubbleCss(configurations.ai);
+                const userData = generateBubbleCss(configurations.user);
+
+                finalCss = `/* --- ${bubbleName} - 全局美化版 --- */
+
+/* 1. 强制重置 TEXT 和 VOICE 气泡的基础样式 */
 #page-conversation .message.text,
 #page-conversation .message.voice {
     border-radius: 0 !important;
@@ -444,7 +470,25 @@ ${selector} {
     max-width: 230px;
 }
 
-/* 2. 确保所有嵌套文本（如引用、语音转文字）继承颜色 */
+/* 2. 左侧气泡 (收到的 TEXT 和 VOICE 消息) */
+#page-conversation .message.received.text,
+#page-conversation .message.received.voice {
+    border-image-source: url('${aiUrl}') !important;
+    border-image-slice: ${aiData.slice.top} ${aiData.slice.right} ${aiData.slice.bottom} ${aiData.slice.left} fill !important;
+    border-image-width: ${aiData.borderWidth.top} ${aiData.borderWidth.right} ${aiData.borderWidth.bottom} ${aiData.borderWidth.left} !important;
+    padding: ${aiData.padding.top} ${aiData.padding.right} ${aiData.padding.bottom} ${aiData.padding.left} !important;
+}
+
+/* 3. 右侧气泡 (发送的 TEXT 和 VOICE 消息) */
+#page-conversation .message.sent.text,
+#page-conversation .message.sent.voice {
+    border-image-source: url('${userUrl}') !important;
+    border-image-slice: ${userData.slice.top} ${userData.slice.right} ${userData.slice.bottom} ${userData.slice.left} fill !important;
+    border-image-width: ${userData.borderWidth.top} ${userData.borderWidth.right} ${userData.borderWidth.bottom} ${userData.borderWidth.left} !important;
+    padding: ${userData.padding.top} ${userData.padding.right} ${userData.padding.bottom} ${userData.padding.left} !important;
+}
+
+/* 4. 确保所有嵌套文本（如引用、语音转文字）继承颜色 */
 #page-conversation .message.text *,
 #page-conversation .message.voice * {
     color: inherit !important;
@@ -452,36 +496,21 @@ ${selector} {
 #page-conversation .quoted-message-preview {
     background-color: transparent !important;
     border-color: rgba(0,0,0,0.2) !important;
-}
-`;
-            
-            let finalCss = '';
-            let fileName = `${bubbleName.trim()}-全局美化`;
-
-            if (target === 'receiver') {
-                if (!receiverCss) { alert('没有可下载的接收方样式，请先上传AI图片。'); return; }
-                finalCss = header + baseRules + "/* --- 接收方 (左侧) --- */" + receiverCss;
-                fileName += '-接收方';
-            } else if (target === 'sender') {
-                if (!senderCss) { alert('没有可下载的发送方样式，请先上传User图片。'); return; }
-                finalCss = header + baseRules + "/* --- 发送方 (右侧) --- */" + senderCss;
-                fileName += '-发送方';
-            } else { // 'full'
-                if (!receiverCss && !senderCss) { alert('请至少上传一张图片以生成样式。'); return; }
-                finalCss = header + baseRules + (receiverCss ? "\n/* --- 接收方 (左侧) --- */\n" + receiverCss : '') + (senderCss ? "\n\n/* --- 发送方 (右侧) --- */\n" + senderCss : '');
-                fileName += '-全局';
+}`;
+                fileName += '-全局美化.css';
             }
 
-            const blob = new Blob([finalCss], { type: 'text/css' });
+            const blob = new Blob([finalCss], { type: 'text/css' }); 
             const link = document.createElement('a');
-            link.download = `${fileName}.css`;
-            link.href = URL.createObjectURL(blob);
-            link.click();
-            URL.revokeObjectURL(link.href);
+            link.download = fileName; 
+            link.href = URL.createObjectURL(blob); 
+            link.click(); 
+            URL.revokeObjectURL(link.href); 
             modal.style.display = 'none';
         }
-        
-        // ✨ 原有的 EPhone 格式下载函数，保持不变 ✨
+
+
+        // ✨ 这是原有的下载函数，保持不变，用于生成 Ephone 格式 ✨
         async function downloadEphoneCss(target) {
             const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
             if (!bubbleName) { alert("已取消下载。"); return; }
