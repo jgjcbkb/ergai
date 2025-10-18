@@ -168,7 +168,8 @@
         sideSelectorFieldset.innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
         document.querySelector('.actions').innerHTML = `<label id="open-file-label" for="file-input-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input-ai" accept="image/*"><input type="file" id="file-input-user" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
         
-        modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="url-grid"><div class="input-group" id="ai-url-group"><label for="ai-url-input">AI 图片 URL:</label><input type="url" id="ai-url-input" placeholder="AI 图片链接"></div><div class="input-group" id="user-url-group"><label for="user-url-input">User 图片 URL:</label><input type="url" id="user-url-input" placeholder="User 图片链接"></div></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="scale-factor-input">缩放比例 (SF):</label><input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div><div class="modal-actions"><div class="btn-tertiary-group"><button id="download-receiver-btn" class="btn-tertiary">下载接收方</button><button id="download-sender-btn" class="btn-tertiary">下载发送方</button><button id="download-global-btn" class="btn-tertiary">下载全局</button></div><div class="btn-tertiary-group" style="margin-top: -5px; margin-bottom: 5px;"><button id="download-ai-style-btn" class="btn-tertiary">下载 AI 样式</button><button id="download-user-style-btn" class="btn-tertiary">下载 User 样式</button><button id="download-full-css-style-btn" class="btn-tertiary">下载合并样式</button></div><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
+        // ✨ 核心修正 1: 更新下载弹窗的HTML，新增“下载代码预览”按钮 ✨
+        modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="url-grid"><div class="input-group" id="ai-url-group"><label for="ai-url-input">AI 图片 URL:</label><input type="url" id="ai-url-input" placeholder="AI 图片链接"></div><div class="input-group" id="user-url-group"><label for="user-url-input">User 图片 URL:</label><input type="url" id="user-url-input" placeholder="User 图片链接"></div></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="scale-factor-input">缩放比例 (SF):</label><input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div><div class="modal-actions"><div class="btn-tertiary-group"><button id="download-receiver-btn" class="btn-tertiary">下载接收方</button><button id="download-sender-btn" class="btn-tertiary">下载发送方</button><button id="download-global-btn" class="btn-tertiary">下载全局</button></div><div class="btn-tertiary-group" style="margin-top: -5px; margin-bottom: 5px;"><button id="download-ai-style-btn" class="btn-tertiary">下载 AI 样式</button><button id="download-user-style-btn" class="btn-tertiary">下载 User 样式</button><button id="download-full-css-style-btn" class="btn-tertiary">下载合并样式</button></div><div class="btn-tertiary-group"><button id="download-preview-code-btn" class="btn-tertiary">下载代码预览</button><div class="btn-tertiary" style="opacity:0;"></div><div class="btn-tertiary" style="opacity:0;"></div></div><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
         infoPanel.innerHTML = `<div class="info-section"><div class="info-grid"><div class="info-grid-item"><span class="label">图像尺寸:</span><span class="value" id="img-size"></span></div></div></div><div class="info-section"><h4>拉伸区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左/右:</span><span class="value" id="stretch-horiz"></span></div><div class="info-grid-item"><span class="label">上/下:</span><span class="value" id="stretch-vert"></span></div></div></div><div class="info-section"><h4>内容区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左:</span><span class="value" id="content-left"></span></div><div class="info-grid-item"><span class="label">右:</span><span class="value" id="content-right"></span></div><div class="info-grid-item"><span class="label">上:</span><span class="value" id="content-top"></span></div><div class="info-grid-item"><span class="label">下:</span><span class="value" id="content-bottom"></span></div></div></div>`;
 
         let configurations = {
@@ -179,8 +180,7 @@
         let currentMode = 'stretch';
         let isDragging = false, draggingLine = null, scale = 1;
         const TOUCH_THRESHOLD = 22;
-        const togglePreviewBtn = document.getElementById('toggle-preview-btn');
-
+        
         function init() {
             document.getElementById('file-input-ai').addEventListener('change', (e) => handleFileSelect(e, 'ai'));
             document.getElementById('file-input-user').addEventListener('change', (e) => handleFileSelect(e, 'user'));
@@ -196,7 +196,8 @@
                     case 'download-image-btn':
                         downloadImage(activeEditor);
                         break;
-                    case 'download-code-btn':
+                    case 'download-code-btn': // 原有按钮
+                    case 'download-preview-code-btn': // 新增按钮
                         downloadCode();
                         break;
                     case 'download-receiver-btn':
@@ -222,7 +223,7 @@
 
             document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', (e) => switchEditor(e.currentTarget.dataset.editor)));
             document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => { document.querySelector('.mode-btn.active').classList.remove('active'); e.currentTarget.classList.add('active'); currentMode = e.currentTarget.dataset.mode; stretchLineControls.style.display = currentMode === 'stretch' ? 'flex' : 'none'; redrawAll(); }));
-            togglePreviewBtn.addEventListener('click', () => previewWindow.style.display = 'block');
+            document.getElementById('toggle-preview-btn').addEventListener('click', () => previewWindow.style.display = 'block');
             document.getElementById('preview-close-btn').addEventListener('click', () => previewWindow.style.display = 'none');
             widthSlider.addEventListener('input', e => previewBox.style.width = `${e.target.value}px`);
             heightSlider.addEventListener('input', e => previewBox.style.height = `${e.target.value}px`);
@@ -300,6 +301,7 @@
             document.getElementById('download-user-style-btn').disabled = !anyImage;
             document.getElementById('download-full-css-style-btn').disabled = !anyImage;
             document.getElementById('download-code-btn').disabled = !anyImage;
+            document.getElementById('download-preview-code-btn').disabled = !anyImage; // Enable/disable new button
             document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
             
             modal.style.display = 'flex';
@@ -319,46 +321,58 @@
             return { slice, borderWidth, padding };
         }
 
+        // ✨ 核心修正 2: 彻底重写 `generateHtmlCode` 以正确处理翻转 ✨
         function generateHtmlCode() {
-            // This function remains unchanged as it already handles the single-image-flip logic correctly.
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             if (!hasAi && !hasUser) { alert('请至少上传一张图片！'); return null; }
             const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value;
-            let combinedStyle = '', transformStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
+            let combinedStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
             const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
+
+            const generateRules = (selector, data, url, flip) => {
+                const base = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
+                const bubble = `border-image-source: url('${url}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left}; padding: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left};`;
+                const transform = flip ? ' transform: scaleX(-1);' : '';
+                const innerTransform = flip ? `\n${selector} .content-wrapper { transform: scaleX(-1); text-align: left; }` : `\n${selector} .content-wrapper { text-align: left; }`;
+                return {
+                    main: `${selector} { align-self: ${selector.includes('.left') ? 'flex-start' : 'flex-end'}; ${base} ${bubble}${transform} }`,
+                    inner: innerTransform
+                };
+            };
+
             if (hasAi && hasUser) {
                 if (!aiUrl || !userUrl) { alert('请输入AI和User两张图片的URL！'); return null; }
-                const aiData = generateBubbleCss(configurations.ai); const userData = generateBubbleCss(configurations.user);
-                const aiBase = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
-                const aiBubble = `border-image-source: url('${aiUrl}'); border-image-slice: ${aiData.slice.top} ${aiData.slice.right} ${aiData.slice.bottom} ${aiData.slice.left} fill; border-image-width: ${aiData.borderWidth.top} ${aiData.borderWidth.right} ${aiData.borderWidth.bottom} ${aiData.borderWidth.left}; padding: ${aiData.padding.top} ${aiData.padding.right} ${aiData.padding.bottom} ${aiData.padding.left};`;
-                const userBase = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
-                const userBubble = `border-image-source: url('${userUrl}'); border-image-slice: ${userData.slice.top} ${userData.slice.right} ${userData.slice.bottom} ${userData.slice.left} fill; border-image-width: ${userData.borderWidth.top} ${userData.borderWidth.right} ${userData.borderWidth.bottom} ${userData.borderWidth.left}; padding: ${userData.padding.top} ${userData.padding.right} ${userData.padding.bottom} ${userData.padding.left};`;
-                combinedStyle = `.bubble.left { align-self: flex-start; ${aiBase} ${aiBubble} }\n.bubble.right { align-self: flex-end; ${userBase} ${userBubble} }`;
-                transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+                const aiData = generateBubbleCss(configurations.ai);
+                const userData = generateBubbleCss(configurations.user);
+                const leftRules = generateRules('.bubble.left', aiData, aiUrl, false);
+                const rightRules = generateRules('.bubble.right', userData, userUrl, false);
+                combinedStyle = `${leftRules.main}\n${rightRules.main}\n${leftRules.inner}\n${rightRules.inner}`;
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? aiUrl : userUrl;
                 if (!singleUrl) { alert('请输入已上传图片的URL！'); return null; }
                 const data = generateBubbleCss(singleConfig); 
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
-                const base = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word; border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left}; padding: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left};`;
+                
+                let leftRules, rightRules;
                 if (selectedSide === 'left') {
-                    combinedStyle = `.bubble.left { align-self: flex-start; ${base} }\n.bubble.right { align-self: flex-end; ${base} transform: scaleX(-1); }`;
-                    transformStyle = `.bubble.right .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+                    leftRules = generateRules('.bubble.left', data, singleUrl, false);
+                    rightRules = generateRules('.bubble.right', data, singleUrl, true);
                 } else if (selectedSide === 'right') {
-                    combinedStyle = `.bubble.right { align-self: flex-end; ${base} }\n.bubble.left { align-self: flex-start; ${base} transform: scaleX(-1); }`;
-                    transformStyle = `.bubble.left .content-wrapper { transform: scaleX(-1); } .bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
-                } else {
-                    combinedStyle = `.bubble.left, .bubble.right { ${base} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
-                    transformStyle = `.bubble.left .content-wrapper, .bubble.right .content-wrapper { text-align: left; }`;
+                    leftRules = generateRules('.bubble.left', data, singleUrl, true);
+                    rightRules = generateRules('.bubble.right', data, singleUrl, false);
+                } else { // 'center'
+                    leftRules = generateRules('.bubble.left', data, singleUrl, false);
+                    rightRules = generateRules('.bubble.right', data, singleUrl, false);
                 }
+                combinedStyle = `${leftRules.main}\n${rightRules.main}\n${leftRules.inner}\n${rightRules.inner}`;
             }
-            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
+            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
         };
         
-        function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
+        function downloadCode() { const code = generateHtmlCode(); if(!code) return; downloadFile(code, 'demo.html', 'text/html'); modal.style.display = 'none'; };
         
-        // ✨ 核心修正 2: `downloadAppCss` - 彻底重写，以正确处理单图/双图逻辑和两种CSS格式 ✨
+        // ✨ 核心修正 3: 新增 `downloadAppCss` 函数，用于生成您需要的两种特定格式 ✨
         async function downloadAppCss(target) {
             const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称 (用于文件名):", "我的气泡"); resolve(name); });
             if (!bubbleName) { alert("已取消下载。"); return; }
@@ -370,16 +384,15 @@
             const aiUrl = document.getElementById('ai-url-input').value;
             const userUrl = document.getElementById('user-url-input').value;
 
-            let receiverCssString = '', senderCssString = '';
+            let receiverCss, senderCss;
 
-            // --- 逻辑判断核心 ---
-            if (hasAi && hasUser) { // 两张图都存在
+            if (hasAi && hasUser) {
                 if (!aiUrl || !userUrl) { alert("请输入AI和User两张图片的URL！"); return; }
                 const aiData = generateBubbleCss(configurations.ai);
                 const userData = generateBubbleCss(configurations.user);
-                receiverCssString = generateCssString('receiver', aiData, aiUrl);
-                senderCssString = generateCssString('sender', userData, userUrl);
-            } else { // 只有一张图
+                receiverCss = generateAppCssStrings('receiver', aiData, aiUrl, false);
+                senderCss = generateAppCssStrings('sender', userData, userUrl, false);
+            } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? aiUrl : userUrl;
                 if (!singleUrl) { alert("请输入已上传图片的URL！"); return; }
@@ -387,34 +400,33 @@
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
 
                 if (selectedSide === 'left') {
-                    receiverCssString = generateCssString('receiver', data, singleUrl);
-                    senderCssString = generateCssString('sender', data, singleUrl, true); // 翻转
+                    receiverCss = generateAppCssStrings('receiver', data, singleUrl, false);
+                    senderCss = generateAppCssStrings('sender', data, singleUrl, true);
                 } else if (selectedSide === 'right') {
-                    receiverCssString = generateCssString('receiver', data, singleUrl, true); // 翻转
-                    senderCssString = generateCssString('sender', data, singleUrl);
+                    receiverCss = generateAppCssStrings('receiver', data, singleUrl, true);
+                    senderCss = generateAppCssStrings('sender', data, singleUrl, false);
                 } else { // 'center'
-                    receiverCssString = generateCssString('receiver', data, singleUrl);
-                    senderCssString = generateCssString('sender', data, singleUrl);
+                    receiverCss = generateAppCssStrings('receiver', data, singleUrl, false);
+                    senderCss = generateAppCssStrings('sender', data, singleUrl, false);
                 }
             }
 
-            // --- 根据目标生成最终内容和文件名 ---
             let finalCss = '';
             let fileName = bubbleName.trim();
             
             if (target === 'receiver') {
-                finalCss = receiverCssString.custom;
+                finalCss = receiverCss.custom;
                 fileName += '-接收方-自定义气泡.css';
             } else if (target === 'sender') {
-                finalCss = senderCssString.custom;
+                finalCss = senderCss.custom;
                 fileName += '-发送方-自定义气泡.css';
             } else if (target === 'global') {
                 finalCss = `/* --- ${bubbleName} - 全局美化版 --- */\n\n` + 
                          `/* 1. 强制重置 TEXT 和 VOICE 气泡的基础样式 */\n` + 
-                         `${receiverCssString.globalReset}\n` +
-                         `${receiverCssString.global}\n` +
-                         `${senderCssString.global}\n` +
-                         `${receiverCssString.globalSharedChildren}`;
+                         `${receiverCss.globalReset}\n` + // Use reset from one of them
+                         `${receiverCss.global}\n` +
+                         `${senderCss.global}\n` +
+                         `${receiverCss.globalSharedChildren}`; // Use shared children from one of them
                 fileName += '-全局美化.css';
             }
 
@@ -422,16 +434,14 @@
             modal.style.display = 'none';
         }
 
-        function generateCssString(side, data, url, flip = false) {
+        function generateAppCssStrings(side, data, url, flip) {
             const isReceiver = side === 'receiver';
             const flipTransform = flip ? ' transform: scaleX(-1);' : '';
-            // 自定义气泡格式的内联样式
-            const customPadding = flip 
+            const padding = flip 
                 ? `${data.padding.top} ${data.padding.left} ${data.padding.bottom} ${data.padding.right}`
                 : `${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left}`;
-
-            // --- 1. 生成自定义气泡格式 (`&`) ---
-            const customCss = `& {
+            
+            const resetAndSharedStyles = `
     /* --- 关键：重置默认样式 --- */
     border-radius: 0 !important;
     box-shadow: none !important;
@@ -444,66 +454,36 @@
     line-height: 1.6 !important;
     font-size: 16px !important;
     width: fit-content; /* 确保宽度自适应内容 */
-    max-width: 230px; /* 保持最大宽度限制 */
-
+    max-width: 230px; /* 保持最大宽度限制 */`;
+            
+            const borderImageStyle = `
     /* --- 图片边框样式 --- */
     border-image-source: url('${url}') !important;
     border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
     border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
-    padding: ${customPadding} !important;${flipTransform}
-}
+    padding: ${padding} !important;${flipTransform}`;
 
-/* --- 确保内部元素(如引用消息)颜色正确 --- */
-& * {
-    color: inherit !important;
-}
-& .quoted-message-preview {
-    background-color: transparent !important;
-    border-color: rgba(0,0,0,0.2) !important;
-}${ flip ? `\n& .content-wrapper { transform: scaleX(-1); }` : ''}`;
+            // --- 1. 自定义气泡格式 (`&`) ---
+            // ✨ Correctly un-flips the content inside ✨
+            const customUnflip = flip ? `\n\n/* --- 修正翻转内容的文字方向 --- */\n& > * {\n    transform: scaleX(-1);\n}` : '';
+            const customSharedChildren = `\n\n/* --- 确保内部元素(如引用消息)颜色正确 --- */\n& * {\n    color: inherit !important;\n}\n& .quoted-message-preview {\n    background-color: transparent !important;\n    border-color: rgba(0,0,0,0.2) !important;\n}`;
+            const customCss = `& {${resetAndSharedStyles}${borderImageStyle}\n}${customSharedChildren}${customUnflip}`;
 
-            // --- 2. 生成全局美化格式 ---
-            const globalReset = `\#page-conversation .message.text,
-\#page-conversation .message.voice {
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    background: transparent !important;
-    border: none !important; 
-    border-style: solid !important;
-    box-sizing: border-box !important;
-    color: #000 !important;
-    min-width: 0 !important;
-    line-height: 1.6 !important;
-    font-size: 16px !important;
-    width: fit-content;
-    max-width: 230px;
-}`;
+            // --- 2. 全局美化格式 ---
+            const globalReset = `#page-conversation .message.text,\n#page-conversation .message.voice {\n    border-radius: 0 !important;\n    box-shadow: none !important;\n    background: transparent !important;\n    border: none !important; \n    border-style: solid !important;\n    box-sizing: border-box !important;\n    color: #000 !important;\n    min-width: 0 !important;\n    line-height: 1.6 !important;\n    font-size: 16px !important;\n    width: fit-content;\n    max-width: 230px;\n}`;
             const globalSelector = isReceiver 
                 ? `#page-conversation .message.received.text,\n#page-conversation .message.received.voice`
                 : `#page-conversation .message.sent.text,\n#page-conversation .message.sent.voice`;
+            // ✨ Correctly un-flips the content inside ✨
+            const globalUnflip = flip ? `\n${globalSelector} > * {\n    transform: scaleX(-1);\n}` : '';
 
-            const globalCss = `\n/* ${isReceiver ? '2. 左侧气泡 (收到的 TEXT 和 VOICE 消息)' : '3. 右侧气泡 (发送的 TEXT 和 VOICE 消息)'} */
-${globalSelector} {
-    border-image-source: url('${url}') !important;
-    border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
-    border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
-    padding: ${customPadding} !important;${flipTransform}
-}`;
-            const globalSharedChildren = `\n/* 4. 确保所有嵌套文本（如引用、语音转文字）继承颜色 */
-\#page-conversation .message.text *,
-\#page-conversation .message.voice * {
-    color: inherit !important;
-}
-\#page-conversation .quoted-message-preview {
-    background-color: transparent !important;
-    border-color: rgba(0,0,0,0.2) !important;
-}`;
+            const globalCss = `\n/* ${isReceiver ? '2. 左侧气泡 (收到的 TEXT 和 VOICE 消息)' : '3. 右侧气泡 (发送的 TEXT 和 VOICE 消息)'} */\n${globalSelector} {\n    border-image-source: url('${url}') !important;\n    border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;\n    border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;\n    padding: ${padding} !important;${flipTransform}\n}${globalUnflip}`;
+            
+            const globalSharedChildren = `\n\n/* 4. 确保所有嵌套文本（如引用、语音转文字）继承颜色 */\n#page-conversation .message.text *,\n#page-conversation .message.voice * {\n    color: inherit !important;\n}\n#page-conversation .quoted-message-preview {\n    background-color: transparent !important;\n    border-color: rgba(0,0,0,0.2) !important;\n}`;
 
             return { custom: customCss, global: globalCss, globalReset: globalReset, globalSharedChildren: globalSharedChildren };
         }
 
-
-        // ✨ 这是原有的下载函数，保持不变，用于生成 Ephone 格式 ✨
         async function downloadEphoneCss(target) {
             // This function remains unchanged to support the original "AI/User/Merge Style" buttons
             const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
