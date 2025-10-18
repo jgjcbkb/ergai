@@ -168,7 +168,7 @@
         sideSelectorFieldset.innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
         document.querySelector('.actions').innerHTML = `<label id="open-file-label" for="file-input-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input-ai" accept="image/*"><input type="file" id="file-input-user" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
         
-        // ✨ 核心修正 1: 更新下载弹窗的HTML，包含您需要的所有6个按钮 ✨
+        // ✨ 核心修正 1: 更新下载弹窗的HTML，包含您需要的所有按钮 ✨
         modal.innerHTML = `<div class="modal-content"><h3>下载选项</h3><div class="url-grid"><div class="input-group" id="ai-url-group"><label for="ai-url-input">AI 图片 URL:</label><input type="url" id="ai-url-input" placeholder="AI 图片链接"></div><div class="input-group" id="user-url-group"><label for="user-url-input">User 图片 URL:</label><input type="url" id="user-url-input" placeholder="User 图片链接"></div></div><div class="color-grid"><div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div><div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div></div><div class="input-group"><label for="scale-factor-input">缩放比例 (SF):</label><input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div><div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div><div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div><div class="modal-actions"><div class="btn-tertiary-group"><button id="download-receiver-btn" class="btn-tertiary">下载接收方</button><button id="download-sender-btn" class="btn-tertiary">下载发送方</button><button id="download-global-btn" class="btn-tertiary">下载全局</button></div><div class="btn-tertiary-group" style="margin-top: -5px; margin-bottom: 5px;"><button id="download-ai-style-btn" class="btn-tertiary">下载 AI 样式</button><button id="download-user-style-btn" class="btn-tertiary">下载 User 样式</button><button id="download-full-css-style-btn" class="btn-tertiary">下载合并样式</button></div><button id="download-code-btn" class="btn-primary">下载演示代码 (.html)</button><button id="download-image-btn" class="btn-secondary">下载图片 (.9.png)</button><button id="modal-close-btn">取消</button></div></div>`;
         infoPanel.innerHTML = `<div class="info-section"><div class="info-grid"><div class="info-grid-item"><span class="label">图像尺寸:</span><span class="value" id="img-size"></span></div></div></div><div class="info-section"><h4>拉伸区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左/右:</span><span class="value" id="stretch-horiz"></span></div><div class="info-grid-item"><span class="label">上/下:</span><span class="value" id="stretch-vert"></span></div></div></div><div class="info-section"><h4>内容区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左:</span><span class="value" id="content-left"></span></div><div class="info-grid-item"><span class="label">右:</span><span class="value" id="content-right"></span></div><div class="info-grid-item"><span class="label">上:</span><span class="value" id="content-top"></span></div><div class="info-grid-item"><span class="label">下:</span><span class="value" id="content-bottom"></span></div></div></div>`;
 
@@ -188,7 +188,7 @@
             document.getElementById('clear-btn').addEventListener('click', () => { if (!configurations[activeEditor].image) return; resetRegions(activeEditor, currentMode); setupPreview(configurations[activeEditor].image); redrawAll(); updateInfoPanel(); updatePreview(); });
             document.getElementById('download-trigger-btn').addEventListener('click', openDownloadModal);
             
-            // ✨ 核心修正 2: 绑定所有按钮的点击事件 ✨
+            // ✨ 核心修正 2: 绑定所有按钮的点击事件，并区分调用函数 ✨
             modal.addEventListener('click', (e) => {
                 const targetId = e.target.id;
                 switch(targetId) {
@@ -201,17 +201,17 @@
                     case 'download-code-btn':
                         downloadCode();
                         break;
-                    // 新增的三个按钮
+                    // 新增的三个按钮 -> 调用新的函数
                     case 'download-receiver-btn':
-                        downloadEphoneCss('ai');
+                        downloadGlobalBeautyCss('receiver');
                         break;
                     case 'download-sender-btn':
-                        downloadEphoneCss('user');
+                        downloadGlobalBeautyCss('sender');
                         break;
                     case 'download-global-btn':
-                        downloadEphoneCss('full');
+                        downloadGlobalBeautyCss('full');
                         break;
-                    // 恢复的三个按钮 (功能与上面对应)
+                    // 原有的三个按钮 -> 调用旧的函数
                     case 'download-ai-style-btn':
                         downloadEphoneCss('ai');
                         break;
@@ -295,9 +295,7 @@
             const hasAi = !!configurations.ai.image; const hasUser = !!configurations.user.image;
             document.getElementById('ai-url-group').style.display = hasAi ? 'block' : 'none';
             document.getElementById('user-url-group').style.display = hasUser ? 'block' : 'none';
-            
             const anyImage = hasAi || hasUser;
-            // 启用/禁用所有相关按钮
             document.getElementById('download-receiver-btn').disabled = !anyImage;
             document.getElementById('download-sender-btn').disabled = !anyImage;
             document.getElementById('download-global-btn').disabled = !anyImage;
@@ -306,7 +304,6 @@
             document.getElementById('download-full-css-style-btn').disabled = !anyImage;
             document.getElementById('download-code-btn').disabled = !anyImage;
             document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
-            
             modal.style.display = 'flex';
         }
         
@@ -381,7 +378,110 @@
         };
         function downloadCode() { const code = generateHtmlCode(); if(!code) return; const blob = new Blob([code], { type: 'text/html' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'demo.html'; link.click(); URL.revokeObjectURL(link.href); modal.style.display = 'none'; };
         
-        // ✨ 核心修正 3: `downloadEphoneCss` 函数现在可以正确处理所有下载请求 ✨
+        // ✨ 核心修正 3: 创建一个全新的函数 `downloadGlobalBeautyCss` ✨
+        // 这个函数专门生成您想要的、可以直接用于“全局美化”的CSS格式
+        async function downloadGlobalBeautyCss(target) {
+            const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的全局气泡"); resolve(name); });
+            if (!bubbleName) { alert("已取消下载。"); return; }
+
+            const hasAi = !!configurations.ai.image;
+            const hasUser = !!configurations.user.image;
+            const aiUrl = document.getElementById('ai-url-input').value;
+            const userUrl = document.getElementById('user-url-input').value;
+            let receiverCss = '';
+            let senderCss = '';
+
+            // 内部帮助函数，用于生成单边的CSS代码
+            const generateStyleForSide = (config, imageUrl, selector) => {
+                const data = generateBubbleCss(config); // 复用现有的计算逻辑
+                return `
+${selector} {
+    border-image-source: url('${imageUrl}') !important;
+    border-image-slice: ${data.bubbleStyle.match(/slice: (.*?);/)[1]} fill !important;
+    border-image-width: ${data.bubbleStyle.match(/width: (.*?);/)[1]} !important;
+    padding: ${data.bubbleStyle.match(/padding: (.*?);/)[1]} !important;
+}`;
+            };
+            
+            // 生成接收方 (AI) 的 CSS
+            if (hasAi) {
+                if (!aiUrl) { alert('请输入AI图片的URL！'); return; }
+                receiverCss = generateStyleForSide(configurations.ai, aiUrl, '#page-conversation .message.received.text,\n#page-conversation .message.received.voice');
+            }
+
+            // 生成发送方 (User) 的 CSS
+            if (hasUser) {
+                if (!userUrl) { alert('请输入User图片的URL！'); return; }
+                senderCss = generateStyleForSide(configurations.user, userUrl, '#page-conversation .message.sent.text,\n#page-conversation .message.sent.voice');
+            } else if (hasAi && document.querySelector('input[name="side"]:checked').value !== 'center') {
+                // 如果只有AI图，且不是居中模式，则自动生成翻转的发送方样式
+                senderCss = `
+#page-conversation .message.sent.text,
+#page-conversation .message.sent.voice {
+    transform: scaleX(-1);
+}
+#page-conversation .message.sent.text * ,
+#page-conversation .message.sent.voice * {
+    transform: scaleX(-1);
+}`;
+            }
+
+            const header = `/* --- ${bubbleName} - 全局美化样式 --- */\n\n`;
+            const baseRules = `/* 1. 强制重置 TEXT 和 VOICE 气泡的基础样式 */
+#page-conversation .message.text,
+#page-conversation .message.voice {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border: none !important; 
+    border-style: solid !important;
+    box-sizing: border-box !important;
+    color: #000 !important;
+    min-width: 0 !important;
+    line-height: 1.6 !important;
+    font-size: 16px !important;
+    width: fit-content;
+    max-width: 230px;
+}
+
+/* 2. 确保所有嵌套文本（如引用、语音转文字）继承颜色 */
+#page-conversation .message.text *,
+#page-conversation .message.voice * {
+    color: inherit !important;
+}
+#page-conversation .quoted-message-preview {
+    background-color: transparent !important;
+    border-color: rgba(0,0,0,0.2) !important;
+}
+`;
+            
+            let finalCss = '';
+            let fileName = `${bubbleName.trim()}-全局美化`;
+
+            if (target === 'receiver') {
+                if (!receiverCss) { alert('没有可下载的接收方样式，请先上传AI图片。'); return; }
+                finalCss = header + baseRules + "/* --- 接收方 (左侧) --- */" + receiverCss;
+                fileName += '-接收方';
+            } else if (target === 'sender') {
+                if (!senderCss) { alert('没有可下载的发送方样式，请先上传User图片。'); return; }
+                finalCss = header + baseRules + "/* --- 发送方 (右侧) --- */" + senderCss;
+                fileName += '-发送方';
+            } else { // 'full'
+                if (!receiverCss && !senderCss) { alert('请至少上传一张图片以生成样式。'); return; }
+                finalCss = header + baseRules + (receiverCss ? "\n/* --- 接收方 (左侧) --- */\n" + receiverCss : '') + (senderCss ? "\n\n/* --- 发送方 (右侧) --- */\n" + senderCss : '');
+                fileName += '-全局';
+            }
+
+            const blob = new Blob([finalCss], { type: 'text/css' });
+            const link = document.createElement('a');
+            link.download = `${fileName}.css`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+            modal.style.display = 'none';
+        }
+        
+        // ✨ 原有的 EPhone 格式下载函数，保持不变 ✨
         async function downloadEphoneCss(target) {
             const bubbleName = await new Promise(resolve => { const name = prompt("请输入气泡样式名称:", "我的气泡"); resolve(name); });
             if (!bubbleName) { alert("已取消下载。"); return; }
@@ -451,13 +551,13 @@
             
             if (target === 'ai') {
                 finalCss = header + baseRules + aiCss;
-                fileName += '-接收方(AI)';
+                fileName += '-AI';
             } else if (target === 'user') {
                 finalCss = header + baseRules + userCss;
-                fileName += '-发送方(User)';
+                fileName += '-User';
             } else { // 'full'
                 finalCss = header + baseRules + aiCss + userCss;
-                fileName += '-全局';
+                fileName += '-合并';
             }
             
             const blob = new Blob([finalCss], { type: 'text/plain' }); 
