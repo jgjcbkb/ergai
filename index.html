@@ -99,20 +99,15 @@
         .slider-group label { flex-shrink: 0; width: 70px; }
         .slider-group input[type="range"] { flex-grow: 1; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-        /* --- 修正 2: 弹窗样式调整，确保可滚动 --- */
-        .modal-content { 
-            background-color: white; padding: 20px; border-radius: 12px; 
-            width: 90%; max-width: 500px; text-align: left; 
-            display: flex; flex-direction: column; max-height: 90vh; 
-        }
+        .modal-content { background-color: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; text-align: left; display: flex; flex-direction: column; max-height: 90vh; }
         .modal-content h3 { margin-top: 0; text-align: center; flex-shrink: 0; }
-        .modal-body { overflow-y: auto; flex-grow: 1; margin-bottom: 15px; padding-right: 10px; /* 为滚动条留出空间 */ }
+        .modal-body { overflow-y: auto; flex-grow: 1; padding-right: 10px; /* Add some padding for scrollbar */ }
         .modal-content .input-group { margin-bottom: 15px; }
         .modal-content label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500; }
         .modal-content input, .modal-content textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
         .modal-content textarea { min-height: 60px; resize: vertical; }
         .modal-content .url-grid, .modal-content .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: auto; /* 将按钮推到底部 */ flex-shrink: 0; }
+        .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; flex-shrink: 0; }
         .modal-actions button { padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
         .modal-actions .btn-primary { background-color: #2ecc71; color: white; }
         .modal-actions .btn-secondary { background-color: #3498db; color: white; }
@@ -124,6 +119,8 @@
         #code-preview-textarea { flex-grow: 1; width: 100%; min-height: 150px; resize: vertical; font-family: monospace; font-size: 12px; white-space: pre; }
         .code-preview-actions { display: flex; gap: 10px; margin-top: 15px; }
         .code-preview-actions button { flex: 1; }
+        
+        #download-options-view { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -155,7 +152,7 @@
     <div id="preview-window">
         <div id="preview-window-header"><h3>拉伸预览</h3><button id="preview-close-btn">&times;</button></div>
         <div class="content">
-            <div id="preview-container"><div id="preview-box"><div class="content-wrapper"></div></div></div>
+            <div id="preview-container"><div id="preview-box"><div id="preview-content-area"></div></div></div>
             <div class="preview-controls">
                 <div class="slider-group"><label for="width-slider">左右拉伸:</label><input type="range" id="width-slider" min="50" max="500" value="150"></div>
                 <div class="slider-group"><label for="height-slider">上下拉伸:</label><input type="range" id="height-slider" min="50" max="500" value="100"></div>
@@ -243,7 +240,7 @@
                     showCodePreview(target.dataset.target);
                 } else if (target.id === 'back-to-options-btn') {
                     document.getElementById('code-preview-view').style.display = 'none';
-                    document.getElementById('download-options-view').style.display = 'block';
+                    document.getElementById('download-options-view').style.display = 'flex';
                 }
             });
 
@@ -253,12 +250,7 @@
             document.getElementById('preview-close-btn').addEventListener('click', () => previewWindow.style.display = 'none');
             widthSlider.addEventListener('input', e => previewBox.style.width = `${e.target.value}px`);
             heightSlider.addEventListener('input', e => previewBox.style.height = `${e.target.value}px`);
-            showContentCheckbox.addEventListener('change', e => {
-                const wrapper = previewBox.querySelector('.content-wrapper');
-                if(wrapper) {
-                    wrapper.style.backgroundColor = e.target.checked ? 'rgba(46, 204, 113, 0.5)' : 'transparent';
-                }
-            });
+            showContentCheckbox.addEventListener('change', e => previewContentArea.classList.toggle('visible', e.target.checked));
             const wrapper = document.getElementById('canvas-wrapper');
             const events = { down: ['mousedown', 'touchstart'], up: ['mouseup', 'touchend', 'touchcancel'], };
             events.down.forEach(e => wrapper.addEventListener(e, onDown, { passive: false }));
@@ -301,22 +293,7 @@
         
         let populatedSpans = {}; function updateInfoPanel() { if (!populatedSpans.imgSize) { populatedSpans = { imgSize: document.getElementById('img-size'), stretch: { horiz: document.getElementById('stretch-horiz'), vert: document.getElementById('stretch-vert') }, content: { top: document.getElementById('content-top'), bottom: document.getElementById('content-bottom'), left: document.getElementById('content-left'), right: document.getElementById('content-right') } }; } const config = configurations[activeEditor]; if (!config.image) return; populatedSpans.imgSize.textContent = `${config.image.width} x ${config.image.height} px`; const s = config.regions.stretch; populatedSpans.stretch.horiz.textContent = (s.left !== null) ? `${Math.round(s.left)} - ${Math.round(s.right)}` : '固定'; populatedSpans.stretch.vert.textContent = (s.top !== null) ? `${Math.round(s.top)} - ${Math.round(s.bottom)}` : '固定'; const c = config.regions.content; ['top', 'bottom', 'left', 'right'].forEach(line => { populatedSpans.content[line].textContent = c[line] !== null ? Math.round(c[line]) : 'N/A'; }); }
         
-        function updatePreview() {
-             const config = configurations[activeEditor]; if (!config.image) return;
-             const { width: w, height: h } = config.image; const sr = config.regions.stretch; const cr = config.regions.content;
-             const slice = { top: (sr.top !== null) ? Math.round(sr.top) : 0, right: (sr.left !== null) ? Math.round(w - sr.right) : 0, bottom: (sr.top !== null) ? Math.round(h - sr.bottom) : 0, left: (sr.left !== null) ? Math.round(sr.left) : 0 };
-             const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100));
-             const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) };
-             const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 };
-             previewBox.style.borderImageSource = `url('${config.image.src}')`;
-             previewBox.style.borderImageSlice = `${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill`;
-             previewBox.style.borderImageWidth = `${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px`;
-             
-             // ✨ 核心修正 1: 预览框内也加入 content-wrapper 来正确演示翻转 ✨
-             previewBox.innerHTML = `<div class="content-wrapper" style="padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px; background-color: transparent;">预览文字...</div>`;
-             
-             widthSlider.disabled = (sr.left === null); heightSlider.disabled = (sr.top === null);
-        }
+        function updatePreview() { const config = configurations[activeEditor]; if (!config.image) return; const { width: w, height: h } = config.image; const sr = config.regions.stretch; const cr = config.regions.content; const slice = { top: (sr.top !== null) ? Math.round(sr.top) : 0, right: (sr.left !== null) ? Math.round(w - sr.right) : 0, bottom: (sr.top !== null) ? Math.round(h - sr.bottom) : 0, left: (sr.left !== null) ? Math.round(sr.left) : 0 }; const scaleFactor = Math.max(1, Math.round(Math.min(w, h) / 100)); const borderWidth = { top: Math.round(slice.top / scaleFactor), right: Math.round(slice.right / scaleFactor), bottom: Math.round(slice.bottom / scaleFactor), left: Math.round(slice.left / scaleFactor) }; const padding = { top: cr.top !== null ? Math.round(cr.top / scaleFactor) : 0, right: cr.right !== null ? Math.round((w - cr.right) / scaleFactor) : 0, bottom: cr.bottom !== null ? Math.round((h - cr.bottom) / scaleFactor) : 0, left: cr.left !== null ? Math.round(cr.left / scaleFactor) : 0 }; previewBox.style.borderImageSource = `url('${config.image.src}')`; previewBox.style.borderImageSlice = `${slice.top} ${slice.right} ${slice.bottom} ${slice.left} fill`; previewBox.style.borderImageWidth = `${borderWidth.top}px ${borderWidth.right}px ${borderWidth.bottom}px ${borderWidth.left}px`; previewContentArea.style.top = `${padding.top}px`; previewContentArea.style.right = `${padding.right}px`; previewContentArea.style.bottom = `${padding.bottom}px`; previewContentArea.style.left = `${padding.left}px`; widthSlider.disabled = (sr.left === null); heightSlider.disabled = (sr.top === null); }
         
         function setupCanvas() { const img = configurations[activeEditor].image; if (!img) return; canvas.width = img.width + 2; canvas.height = img.height + 2; }
         
@@ -342,7 +319,7 @@
             document.querySelectorAll('.css-preview-trigger').forEach(btn => btn.disabled = !anyImage);
             document.getElementById('download-code-btn').disabled = !anyImage;
             document.getElementById('download-image-btn').disabled = !configurations[activeEditor].image;
-            document.getElementById('download-options-view').style.display = 'block';
+            document.getElementById('download-options-view').style.display = 'flex';
             document.getElementById('code-preview-view').style.display = 'none';
             modal.style.display = 'flex';
         }
@@ -367,46 +344,35 @@
             const leftText = document.getElementById('left-text-input').value; const rightText = document.getElementById('right-text-input').value;
             let combinedStyle = '', leftBubbleClass = 'bubble left', rightBubbleClass = 'bubble right';
             const aiUrl = document.getElementById('ai-url-input').value; const userUrl = document.getElementById('user-url-input').value;
-            
-            // ✨ 核心修正 1: 演示代码中的翻转逻辑修正 ✨
-            const baseStyle = `line-height: 1.6; font-size: 16px; border-style: solid; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
-            
             if (hasAi && hasUser) {
                 if (!aiUrl || !userUrl) { alert('请输入AI和User两张图片的URL！'); return null; }
-                const aiData = generateBubbleCss(configurations.ai);
-                const userData = generateBubbleCss(configurations.user);
-                const aiBubble = `border-image-source: url('${aiUrl}'); border-image-slice: ${aiData.slice.top} ${aiData.slice.right} ${aiData.slice.bottom} ${aiData.slice.left} fill; border-image-width: ${aiData.borderWidth.top} ${aiData.borderWidth.right} ${aiData.borderWidth.bottom} ${aiData.borderWidth.left}; padding: ${aiData.padding.top} ${aiData.padding.right} ${aiData.padding.bottom} ${aiData.padding.left};`;
-                const userBubble = `border-image-source: url('${userUrl}'); border-image-slice: ${userData.slice.top} ${userData.slice.right} ${userData.slice.bottom} ${userData.slice.left} fill; border-image-width: ${userData.borderWidth.top} ${userData.borderWidth.right} ${userData.borderWidth.bottom} ${userData.borderWidth.left}; padding: ${userData.padding.top} ${userData.padding.right} ${userData.padding.bottom} ${userData.padding.left};`;
-                combinedStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${aiBubble} }
-.bubble.right { align-self: flex-end; ${baseStyle} ${userBubble} }
-.bubble > .content-wrapper { text-align: left; }`;
+                const aiData = generateBubbleCss(configurations.ai); const userData = generateBubbleCss(configurations.user);
+                const baseStyle = `line-height: 1.6; font-size: 16px; position: relative; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
+                const beforeBase = `content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-style: solid;`;
+                const aiBubble = `padding: ${aiData.padding.top} ${aiData.padding.right} ${aiData.padding.bottom} ${aiData.padding.left};`;
+                const userBubble = `padding: ${userData.padding.top} ${userData.padding.right} ${userData.padding.bottom} ${userData.padding.left};`;
+                const aiBefore = `border-image-source: url('${aiUrl}'); border-image-slice: ${aiData.slice.top} ${aiData.slice.right} ${aiData.slice.bottom} ${aiData.slice.left} fill; border-image-width: ${aiData.borderWidth.top} ${aiData.borderWidth.right} ${aiData.borderWidth.bottom} ${aiData.borderWidth.left};`;
+                const userBefore = `border-image-source: url('${userUrl}'); border-image-slice: ${userData.slice.top} ${userData.slice.right} ${userData.slice.bottom} ${userData.slice.left} fill; border-image-width: ${userData.borderWidth.top} ${userData.borderWidth.right} ${userData.borderWidth.bottom} ${userData.borderWidth.left};`;
+                combinedStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${aiBubble} } .bubble.left::before { ${beforeBase} ${aiBefore} }\n.bubble.right { align-self: flex-end; ${baseStyle} ${userBubble} } .bubble.right::before{ ${beforeBase} ${userBefore} }`;
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? aiUrl : userUrl;
                 if (!singleUrl) { alert('请输入已上传图片的URL！'); return null; }
                 const data = generateBubbleCss(singleConfig); 
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
-                const bubbleProps = `border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left};`;
-                const padding = `padding: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left};`;
+                const base = `line-height: 1.6; font-size: 16px; position: relative; box-sizing: border-box; width: fit-content; max-width: 80%; word-wrap: break-word;`;
+                const beforeBase = `content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; border-style: solid; border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left};`;
+                const normalPadding = `padding: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left};`;
                 const flippedPadding = `padding: ${data.padding.top} ${data.padding.left} ${data.padding.bottom} ${data.padding.right};`;
-
                 if (selectedSide === 'left') {
-                    combinedStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${bubbleProps} ${padding} }
-.bubble.right { align-self: flex-end; ${baseStyle} ${bubbleProps} ${flippedPadding} transform: scaleX(-1); }
-.bubble > .content-wrapper { text-align: left; }
-.bubble.right > .content-wrapper { transform: scaleX(-1); }`;
+                    combinedStyle = `.bubble.left { align-self: flex-start; ${base} ${normalPadding} } .bubble.left::before { ${beforeBase} }\n.bubble.right { align-self: flex-end; ${base} ${flippedPadding} } .bubble.right::before { ${beforeBase} transform: scaleX(-1); }`;
                 } else if (selectedSide === 'right') {
-                    combinedStyle = `.bubble.right { align-self: flex-end; ${baseStyle} ${bubbleProps} ${padding} }
-.bubble.left { align-self: flex-start; ${baseStyle} ${bubbleProps} ${flippedPadding} transform: scaleX(-1); }
-.bubble > .content-wrapper { text-align: left; }
-.bubble.left > .content-wrapper { transform: scaleX(-1); }`;
-                } else { // center
-                    combinedStyle = `.bubble.left { align-self: flex-start; ${baseStyle} ${bubbleProps} ${padding} }
-.bubble.right { align-self: flex-end; ${baseStyle} ${bubbleProps} ${padding} }
-.bubble > .content-wrapper { text-align: left; }`;
+                    combinedStyle = `.bubble.right { align-self: flex-end; ${base} ${normalPadding} } .bubble.right::before { ${beforeBase} }\n.bubble.left { align-self: flex-start; ${base} ${flippedPadding} } .bubble.left::before { ${beforeBase} transform: scaleX(-1); }`;
+                } else {
+                    combinedStyle = `.bubble.left, .bubble.right { ${base} ${normalPadding} } .bubble.left::before, .bubble.right::before { ${beforeBase} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
                 }
             }
-            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
+            return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}">${leftText.replace(/\n/g, '<br>')}</div><div class="${rightBubbleClass}">${rightText.replace(/\n/g, '<br>')}</div></div></body></html>`;
         };
         
         function downloadCode() { const code = generateHtmlCode(); if(!code) return; downloadFile(code, 'demo.html', 'text/html'); modal.style.display = 'none'; };
@@ -511,22 +477,22 @@
             
             return { css: finalCss, fileName, title };
         }
-
+        
+        // ✨ 核心修正：重构CSS生成逻辑，使用伪元素翻转背景 ✨
         function createAppCssString(side, data, url, flip = false) {
             const isReceiver = side === 'receiver';
             const flipTransform = flip ? ' transform: scaleX(-1);' : '';
-            // ✨ 核心修正 1: 翻转时，padding值也需要交换左右 ✨
-            const customPadding = flip 
+            const paddingValue = flip 
                 ? `${data.padding.top} ${data.padding.left} ${data.padding.bottom} ${data.padding.right}`
                 : `${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left}`;
 
             const customCss = `& {
-    /* --- 关键：重置默认样式 --- */
+    /* --- 容器基础样式 --- */
+    position: relative !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: transparent !important;
     border: none !important;
-    border-style: solid !important;
     box-sizing: border-box !important;
     color: #000 !important;
     min-width: 0 !important;
@@ -534,18 +500,23 @@
     font-size: 16px !important;
     width: fit-content;
     max-width: 230px;
-
-    /* --- 图片边框样式 --- */
+    padding: ${paddingValue} !important;
+}
+/* --- 使用伪元素承载和翻转背景图片 --- */
+&::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    border-style: solid !important;
     border-image-source: url('${url}') !important;
     border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
     border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
-    padding: ${customPadding} !important;${flipTransform}
+    ${flipTransform}
 }
-
 /* --- 确保内部元素(如引用消息)颜色正确 --- */
 & * {
     color: inherit !important;
-    ${flip ? 'transform: scaleX(-1);' : ''}
 }
 & .quoted-message-preview {
     background-color: transparent !important;
@@ -554,11 +525,11 @@
 
             const globalReset = `#page-conversation .message.text,
 #page-conversation .message.voice {
+    position: relative !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: transparent !important;
     border: none !important; 
-    border-style: solid !important;
     box-sizing: border-box !important;
     color: #000 !important;
     min-width: 0 !important;
@@ -570,12 +541,19 @@
             const globalSelector = isReceiver ? `#page-conversation .message.received.text,\n#page-conversation .message.received.voice` : `#page-conversation .message.sent.text,\n#page-conversation .message.sent.voice`;
             const globalCss = `\n/* ${isReceiver ? '2. 左侧气泡 (收到的 TEXT 和 VOICE 消息)' : '3. 右侧气泡 (发送的 TEXT 和 VOICE 消息)'} */
 ${globalSelector} {
+    padding: ${paddingValue} !important;
+}
+${globalSelector}::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    border-style: solid !important;
     border-image-source: url('${url}') !important;
     border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
     border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
-    padding: ${customPadding} !important;${flipTransform}
-}
-${flip ? `${globalSelector} > * { transform: scaleX(-1); }` : ''}`;
+    ${flipTransform}
+}`;
 
             const globalSharedChildren = `\n/* 4. 确保所有嵌套文本继承颜色 */
 #page-conversation .message.text * ,
@@ -628,12 +606,11 @@ ${flip ? `${globalSelector} > * { transform: scaleX(-1); }` : ''}`;
                 if (!singleUrl) { alert('请输入已上传图片的URL！'); return null; }
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
                 const data = processConfig(singleConfig, '#_placeholder_#');
-                const flippedPadding = `${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px`;
                 const beforeStyle = `border-image-source: url('${singleUrl}'); border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill; border-image-width: ${data.borderWidth.top}px ${data.borderWidth.right}px ${data.borderWidth.bottom}px ${data.borderWidth.left}px;`;
                 const aiPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${aiColor};`;
                 const userPaddingStyle = `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px; color: ${userColor};`;
-                const aiFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${aiColor};`;
-                const userFlippedPaddingStyle = `padding: ${flippedPadding}; color: ${userColor};`;
+                const aiFlippedPaddingStyle = `padding: ${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px; color: ${aiColor};`;
+                const userFlippedPaddingStyle = `padding: ${data.padding.top}px ${data.padding.left}px ${data.padding.bottom}px ${data.padding.right}px; color: ${userColor};`;
 
                 switch (selectedSide) {
                     case 'left':
