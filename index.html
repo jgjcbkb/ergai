@@ -404,7 +404,7 @@
                 const userBubble = `border-image-source: url('${userUrl}'); border-image-slice: ${userData.slice.top} ${userData.slice.right} ${userData.slice.bottom} ${userData.slice.left} fill; border-image-width: ${userData.borderWidth.top} ${userData.borderWidth.right} ${userData.borderWidth.bottom} ${userData.borderWidth.left}; padding: ${userData.padding.top} ${userData.padding.right} ${userData.padding.bottom} ${userData.padding.left};`;
                 
                 combinedStyle = `${aiData.comment}\n.bubble.left { align-self: flex-start; ${commonBase} ${aiData.extraStyles} ${aiBubble} }\n${userData.comment}\n.bubble.right { align-self: flex-end; ${commonBase} ${userData.extraStyles} ${userBubble} }`;
-                transformStyle = `.bubble > .content-wrapper { text-align: left; }`;
+                transformStyle = `.bubble .content-wrapper { text-align: left; }`; // ✨ 修正：简化为通用规则
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? aiUrl : userUrl;
@@ -416,13 +416,15 @@
                 
                 if (selectedSide === 'left') {
                     combinedStyle = `${data.comment}\n.bubble.left { align-self: flex-start; ${base} ${normalPadding} }\n.bubble.right { align-self: flex-end; ${base} ${normalPadding} transform: scaleX(-1); }`;
-                    transformStyle = `.bubble > .content-wrapper { text-align: left; } .bubble.right > .content-wrapper { transform: scaleX(-1); }`;
+                    // ✨ 核心修正：使用 * 选择器反转所有内部元素
+                    transformStyle = `.bubble .content-wrapper { text-align: left; } .bubble.right * { transform: scaleX(-1); }`;
                 } else if (selectedSide === 'right') {
                     combinedStyle = `${data.comment}\n.bubble.right { align-self: flex-end; ${base} ${normalPadding} }\n.bubble.left { align-self: flex-start; ${base} ${normalPadding} transform: scaleX(-1); }`;
-                    transformStyle = `.bubble > .content-wrapper { text-align: left; } .bubble.left > .content-wrapper { transform: scaleX(-1); }`;
+                    // ✨ 核心修正：使用 * 选择器反转所有内部元素
+                    transformStyle = `.bubble .content-wrapper { text-align: left; } .bubble.left * { transform: scaleX(-1); }`;
                 } else {
                     combinedStyle = `${data.comment}\n.bubble.left, .bubble.right { ${base} ${normalPadding} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
-                    transformStyle = `.bubble > .content-wrapper { text-align: left; }`;
+                    transformStyle = `.bubble .content-wrapper { text-align: left; }`;
                 }
             }
             return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>代码演示</title><style>body { background-color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 40px; display: flex; justify-content: center; align-items: center; } .chat-container { max-width: 700px; width: 100%; display: flex; flex-direction: column; gap: 30px; } .bubble { align-self: flex-start; } ${combinedStyle} ${transformStyle}</style></head><body><div class="chat-container"><div class="${leftBubbleClass}"><div class="content-wrapper">${leftText.replace(/\n/g, '<br>')}</div></div><div class="${rightBubbleClass}"><div class="content-wrapper">${rightText.replace(/\n/g, '<br>')}</div></div></div></body></html>`;
@@ -592,7 +594,8 @@ ${globalSelector} {
     border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
     padding: ${customPadding} !important;${flipTransform}
 }
-${flip ? `${globalSelector} > * { transform: scaleX(-1); }` : ''}`;
+/* ✨ 修正：使用更通用的 * 选择器来反转所有内部元素，确保文字不被翻转 */
+${flip ? `${globalSelector} * { transform: scaleX(-1); }` : ''}`;
 
             const globalSharedChildren = `\n/* 4. 确保所有嵌套文本继承颜色 */
 #page-conversation .message.text * ,
@@ -602,6 +605,12 @@ ${flip ? `${globalSelector} > * { transform: scaleX(-1); }` : ''}`;
 #page-conversation .quoted-message-preview {
     background-color: transparent !important;
     border-color: rgba(0,0,0,0.2) !important;
+}
+
+/* ✨ 新增：强制移除默认的气泡指针 */
+#page-conversation .message.text::before, #page-conversation .message.text::after,
+#page-conversation .message.voice::before, #page-conversation .message.voice::after {
+    display: none !important;
 }`;
 
             return { custom: customCss, global: globalCss, globalReset: globalReset, globalSharedChildren: globalSharedChildren };
