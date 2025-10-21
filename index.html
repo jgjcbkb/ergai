@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -6,8 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="点九编辑器">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="manifest" href="data:application/json;base64,ew0KICAibmFtZSI6ICL鐐逛節fvvIzkupTvvIkiLA0KICAic2hvcnRfbmFtZSI6ICL鐐逛節fvvIzkupQiLA0KICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwNCiAgInN0YXJ0X3VybCI6ICIuLyIsDQogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmMGYyZjUiLA0KICAidGhlbWVfY29sb3IiOiAiI2YwZjJmNSINCn0=">
-    <title>点九编辑器 最终版</title>
+    <title>点九编辑器</title>
     <style>
         :root {
             --stretch-color: #3498db; --content-color: #2ecc71; --bg-color: #f0f2f5;
@@ -107,16 +107,6 @@
         .modal-content input, .modal-content textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
         .modal-content textarea { min-height: 60px; resize: vertical; }
         .modal-content .url-grid, .modal-content .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        /* START: New Styles for App Format Options */
-        #app-format-options { 
-            display: none; /* Initially hidden */
-            border-top: 1px solid #eee; 
-            margin-top: 15px; 
-            padding-top: 15px;
-        }
-        #app-format-options .option-group { display: flex; justify-content: center; gap: 20px; }
-        #app-format-options .option-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        /* END: New Styles */
         .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; flex-shrink: 0; }
         .modal-actions button { padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
         .modal-actions .btn-primary { background-color: #2ecc71; color: white; }
@@ -136,6 +126,7 @@
             height: 100%; 
             overflow: hidden;
         }
+        
     </style>
 </head>
 <body>
@@ -191,7 +182,6 @@
         sideSelectorFieldset.innerHTML = `<legend>图片位置</legend><div class="side-options"><input type="radio" id="side-left" name="side" value="left" checked><label for="side-left">左侧</label><input type="radio" id="side-center" name="side" value="center"><label for="side-center">中间</label><input type="radio" id="side-right" name="side" value="right"><label for="side-right">右侧</label></div>`;
         document.querySelector('.actions').innerHTML = `<label id="open-file-label" for="file-input-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>打开</label><input type="file" id="file-input-ai" accept="image/*"><input type="file" id="file-input-user" accept="image/*"><button id="clear-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>重置</button><button id="toggle-preview-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>预览</button><button id="download-trigger-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>下载</button>`;
         
-        // START: MODIFIED MODAL HTML
         modal.innerHTML = `<div class="modal-content">
             <div id="download-options-view">
                 <h3>下载选项</h3>
@@ -204,18 +194,21 @@
                         <div class="input-group"><label for="ai-color-input">AI文字颜色:</label><input type="text" id="ai-color-input" value="#000000"></div>
                         <div class="input-group"><label for="user-color-input">User文字颜色:</label><input type="text" id="user-color-input" value="#000000"></div>
                     </div>
-                    <div class="input-group"><label for="scale-factor-input">缩放比例 (SF):</label><input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div>
-                    <div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div>
-                    <div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div>
 
-                    <!-- NEW: App Format Options -->
-                    <div id="app-format-options">
-                        <label>App 格式应用范围:</label>
-                        <div class="option-group">
-                            <label><input type="radio" name="apply-style" id="apply-style-textonly" value="textonly" checked> 仅文本/语音</label>
-                            <label><input type="radio" name="apply-style" id="apply-style-all" value="all"> 所有消息 (画框)</label>
+                    <!-- START: 新增的功能 -->
+                    <div class="input-group">
+                        <label>气泡应用模式:</label>
+                        <div style="display: flex; gap: 20px; padding-top: 5px;">
+                            <label><input type="radio" name="bubble-mode" value="all" checked> 全部使用气泡</label>
+                            <label><input type="radio" name="bubble-mode" value="text-only"> 仅文本/语音使用</label>
                         </div>
                     </div>
+                    <!-- END: 新增的功能 -->
+
+                    <div class="input-group"><label for="scale-factor-input">缩放比例 (SF):</label>
+<input type="number" id="scale-factor-input" value="18" min="1" step="0.1" placeholder="例如: 18"></div>
+                    <div class="input-group"><label for="left-text-input">左侧演示文字:</label><textarea id="left-text-input">这是一条来自左边的长消息。</textarea></div>
+                    <div class="input-group"><label for="right-text-input">右侧演示文字:</label><textarea id="right-text-input">这是一条来自右边的长消息。</textarea></div>
                 </div>
                 <div class="modal-actions">
                     <div class="btn-tertiary-group"><button data-target="receiver" class="btn-tertiary css-preview-trigger">下载接收方</button><button data-target="sender" class="btn-tertiary css-preview-trigger">下载发送方</button><button data-target="global" class="btn-tertiary css-preview-trigger">下载全局</button></div>
@@ -235,8 +228,6 @@
                 </div>
             </div>
         </div>`;
-        // END: MODIFIED MODAL HTML
-
         infoPanel.innerHTML = `<div class="info-section"><div class="info-grid"><div class="info-grid-item"><span class="label">图像尺寸:</span><span class="value" id="img-size"></span></div></div></div><div class="info-section"><h4>拉伸区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左/右:</span><span class="value" id="stretch-horiz"></span></div><div class="info-grid-item"><span class="label">上/下:</span><span class="value" id="stretch-vert"></span></div></div></div><div class="info-section"><h4>内容区域 (px)</h4><div class="info-grid"><div class="info-grid-item"><span class="label">左:</span><span class="value" id="content-left"></span></div><div class="info-grid-item"><span class="label">右:</span><span class="value" id="content-right"></span></div><div class="info-grid-item"><span class="label">上:</span><span class="value" id="content-top"></span></div><div class="info-grid-item"><span class="label">下:</span><span class="value" id="content-bottom"></span></div></div></div>`;
 
         let configurations = {
@@ -353,6 +344,10 @@
         
         function downloadImage(editor) { const config = configurations[editor]; if (!config.image) { alert(`请先为 ${editor.toUpperCase()} 标签页上传图片！`); return; } const tempCanvas = document.createElement('canvas'); tempCanvas.width = config.image.width + 2; tempCanvas.height = config.image.height + 2; const tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(config.image, 1, 1); const s = config.regions.stretch; const c = config.regions.content; tempCtx.fillStyle = '#000000'; if (s.left !== null) tempCtx.fillRect(Math.round(s.left) + 1, 0, Math.max(1, Math.round(s.right - s.left)), 1); if (s.top !== null) tempCtx.fillRect(0, Math.round(s.top) + 1, 1, Math.max(1, Math.round(s.bottom - s.top))); if (c.left !== null) tempCtx.fillRect(Math.round(c.left) + 1, tempCanvas.height - 1, Math.max(1, Math.round(c.right - c.left)), 1); if (c.top !== null) tempCtx.fillRect(tempCanvas.width - 1, Math.round(c.top) + 1, 1, Math.max(1, Math.round(c.bottom - c.top))); const dataUrl = tempCanvas.toDataURL('image/png'); const link = document.createElement('a'); const nameParts = config.fileName.split('.'); nameParts.pop(); const baseName = nameParts.join('.').replace(/\.9$/, ''); link.download = `${baseName}.9.png`; link.href = dataUrl; link.click(); }
         
+        // =========================================================================
+        // ======================= START: CORRECTED CODE BLOCK =======================
+        // =========================================================================
+
         function generateBubbleCss(config) {
             const scaleFactor = parseFloat(document.getElementById('scale-factor-input').value) || 18;
             const { image, regions } = config;
@@ -360,6 +355,7 @@
             const sr = regions.stretch; 
             const cr = regions.content;
 
+            // --- 核心逻辑判断 ---
             const isHorizontalOnlyStretch = sr.left !== null && sr.top === null;
             const isVerticalOnlyStretch = sr.left === null && sr.top !== null;
             const isFixed = sr.left === null && sr.top === null;
@@ -377,7 +373,7 @@
                 extraStyles = `width: ${Math.round(w / scaleFactor)}px; height: ${Math.round(h / scaleFactor)}px;`;
             } else { // Full stretch
                 comment = `/* Full Stretch */`;
-                extraStyles = 'width: fit-content; max-width: 80%; word-wrap: break-word;';
+                extraStyles = 'width: fit-content; max-width: 230px; word-wrap: break-word;';
             }
             
             const slice = { 
@@ -399,6 +395,7 @@
                 left: `${Math.round(cr.left / scaleFactor)}px` 
             };
 
+            // 返回一个包含所有信息的对象
             return { slice, borderWidth, padding, extraStyles, comment };
         }
 
@@ -420,7 +417,7 @@
                 const userBubble = `border-image-source: url('${userUrl}'); border-image-slice: ${userData.slice.top} ${userData.slice.right} ${userData.slice.bottom} ${userData.slice.left} fill; border-image-width: ${userData.borderWidth.top} ${userData.borderWidth.right} ${userData.borderWidth.bottom} ${userData.borderWidth.left}; padding: ${userData.padding.top} ${userData.padding.right} ${userData.padding.bottom} ${userData.padding.left};`;
                 
                 combinedStyle = `${aiData.comment}\n.bubble.left { align-self: flex-start; ${commonBase} ${aiData.extraStyles} ${aiBubble} }\n${userData.comment}\n.bubble.right { align-self: flex-end; ${commonBase} ${userData.extraStyles} ${userBubble} }`;
-                transformStyle = `.bubble .content-wrapper { text-align: left; }`; 
+                transformStyle = `.bubble .content-wrapper { text-align: left; }`; // ✨ 修正：简化为通用规则
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? aiUrl : userUrl;
@@ -432,9 +429,11 @@
                 
                 if (selectedSide === 'left') {
                     combinedStyle = `${data.comment}\n.bubble.left { align-self: flex-start; ${base} ${normalPadding} }\n.bubble.right { align-self: flex-end; ${base} ${normalPadding} transform: scaleX(-1); }`;
+                    // ✨ 核心修正：使用 * 选择器反转所有内部元素
                     transformStyle = `.bubble .content-wrapper { text-align: left; } .bubble.right * { transform: scaleX(-1); }`;
                 } else if (selectedSide === 'right') {
                     combinedStyle = `${data.comment}\n.bubble.right { align-self: flex-end; ${base} ${normalPadding} }\n.bubble.left { align-self: flex-start; ${base} ${normalPadding} transform: scaleX(-1); }`;
+                    // ✨ 核心修正：使用 * 选择器反转所有内部元素
                     transformStyle = `.bubble .content-wrapper { text-align: left; } .bubble.left * { transform: scaleX(-1); }`;
                 } else {
                     combinedStyle = `${data.comment}\n.bubble.left, .bubble.right { ${base} ${normalPadding} }\n.bubble.left { align-self: flex-start; }\n.bubble.right { align-self: flex-end; }`;
@@ -446,27 +445,19 @@
         
         function downloadCode() { const code = generateHtmlCode(); if(!code) return; downloadFile(code, 'demo.html', 'text/html'); modal.style.display = 'none'; };
         
-        // =========================================================================
-        // ======================= START: MODIFIED FUNCTIONS =======================
-        // =========================================================================
-        
         async function showCodePreview(target) {
             const bubbleName = document.getElementById('ai-url-input').value || document.getElementById('user-url-input').value ? (configurations.ai.fileName || configurations.user.fileName).split('.')[0] : "我的气泡";
             let code = '', fileName = '', title = '';
-            
-            const isAppFormat = ['receiver', 'sender', 'global'].includes(target);
-            const appFormatOptions = document.getElementById('app-format-options');
 
-            if(isAppFormat) {
-                appFormatOptions.style.display = 'block';
-                const applyToAll = document.getElementById('apply-style-all').checked;
-                const result = generateAppCss(target, bubbleName, applyToAll);
+            const isAppFormat = ['receiver', 'sender', 'global'].includes(target);
+            
+            if (isAppFormat) {
+                const result = generateAppCss(target, bubbleName);
                 if (!result) return;
                 code = result.css;
                 fileName = result.fileName;
                 title = result.title;
             } else {
-                appFormatOptions.style.display = 'none';
                 const result = generateEphoneCss(target, bubbleName);
                 if (!result) return;
                 code = result.css;
@@ -496,22 +487,23 @@
             };
         }
 
-        function generateAppCss(target, bubbleName, applyToAll) {
+        function generateAppCss(target, bubbleName) {
             const hasAi = !!configurations.ai.image;
             const hasUser = !!configurations.user.image;
             if (!hasAi && !hasUser) { alert("请至少上传一张图片！"); return null; }
             
+            const bubbleMode = document.querySelector('input[name="bubble-mode"]:checked').value;
             const aiUrl = document.getElementById('ai-url-input').value;
             const userUrl = document.getElementById('user-url-input').value;
 
-            let receiverCss, senderCss;
+            let receiverCssParts, senderCssParts;
 
             if (hasAi && hasUser) {
                 if (!aiUrl || !userUrl) { alert("请输入AI和User两张图片的URL！"); return null; }
                 const aiData = generateBubbleCss(configurations.ai);
                 const userData = generateBubbleCss(configurations.user);
-                receiverCss = createAppCssString('receiver', aiData, aiUrl, false, applyToAll);
-                senderCss = createAppCssString('sender', userData, userUrl, false, applyToAll);
+                receiverCssParts = createAppCssString('receiver', aiData, aiUrl, bubbleMode, false);
+                senderCssParts = createAppCssString('sender', userData, userUrl, bubbleMode, false);
             } else {
                 const singleConfig = hasAi ? configurations.ai : configurations.user;
                 const singleUrl = hasAi ? aiUrl : userUrl;
@@ -520,54 +512,200 @@
                 const selectedSide = document.querySelector('input[name="side"]:checked').value;
 
                 if (selectedSide === 'left') {
-                    receiverCss = createAppCssString('receiver', data, singleUrl, false, applyToAll);
-                    senderCss = createAppCssString('sender', data, singleUrl, true, applyToAll);
+                    receiverCssParts = createAppCssString('receiver', data, singleUrl, bubbleMode, false);
+                    senderCssParts = createAppCssString('sender', data, singleUrl, bubbleMode, true);
                 } else if (selectedSide === 'right') {
-                    receiverCss = createAppCssString('receiver', data, singleUrl, true, applyToAll);
-                    senderCss = createAppCssString('sender', data, singleUrl, false, applyToAll);
+                    receiverCssParts = createAppCssString('receiver', data, singleUrl, bubbleMode, true);
+                    senderCssParts = createAppCssString('sender', data, singleUrl, bubbleMode, false);
                 } else { // center
-                    receiverCss = createAppCssString('receiver', data, singleUrl, false, applyToAll);
-                    senderCss = createAppCssString('sender', data, singleUrl, false, applyToAll);
+                    receiverCssParts = createAppCssString('receiver', data, singleUrl, bubbleMode, false);
+                    senderCssParts = createAppCssString('sender', data, singleUrl, bubbleMode, false);
                 }
             }
 
-            const modeSuffix = applyToAll ? '画框' : '文本';
-            let finalCss = '', fileName = `${bubbleName.trim()}-${modeSuffix}`, title = '';
+            let finalCss = '', fileName = bubbleName.trim(), title = '';
+            
+            // ================== 核心修正：全新的、清晰的下载逻辑 ==================
+            if (target === 'receiver' || target === 'sender') {
+                const parts = (target === 'receiver') ? receiverCssParts : senderCssParts;
+                const sideName = (target === 'receiver') ? '接收方' : '发送方';
 
-            if (target === 'receiver') {
-                finalCss = receiverCss.custom;
-                fileName += '-接收方-自定义气泡.css';
-                title = `接收方 (自定义气泡 - ${modeSuffix}模式)`;
-            } else if (target === 'sender') {
-                finalCss = senderCss.custom;
-                fileName += '-发送方-自定义气泡.css';
-                title = `发送方 (自定义气泡 - ${modeSuffix}模式)`;
-            } else if (target === 'global') {
-                const globalHeader = `/* --- ${bubbleName} - 全局美化 (${modeSuffix}模式) --- */\n\n`;
-                if(applyToAll) {
-                    finalCss = globalHeader + receiverCss.globalFrame + senderCss.globalFrame + receiverCss.globalFrameShared;
+                // ================== 核心升级：在这里！ ==================
+                if (bubbleMode === 'all') {
+                    // 如果是“全部使用气泡”模式，我们就生成全新的、万能的自定义气泡代码！
+                    const flip = (target === 'sender') ? parts.flipSender : parts.flipReceiver;
+
+                    finalCss = `/* --- ${bubbleName} - ${sideName} (万能悬浮版) --- */
+
+/* 1. 画框 (@parent) */
+@parent {
+    border-style: solid !important;
+    border-image-source: url('${parts.url}') !important;
+    border-image-slice: ${parts.slice} !important;
+    border-image-width: ${parts.borderWidth} !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    max-width: 230px !important;
+    box-sizing: border-box !important;
+    ${flip ? 'transform: scaleX(-1);' : ''}
+}
+
+/* 2. 悬浮卡片 (&) */
+&.transfer, &.red_packet, &.location, &.gift, &.pay_for_me, &.photo, &.video, &.photo-description {
+    margin: ${flip ? parts.flippedMargin : parts.margin} !important;
+    position: relative;
+    z-index: 1;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+/* 3. 文本/语音 (&.text, &.voice) */
+&.text,
+&.voice {
+    z-index: auto;
+    margin: 0 !important;
+    padding: ${flip ? parts.flippedPadding : parts.padding} !important;
+    color: black !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 4. 内容反向翻转 (&) */
+${flip ? `& { transform: scaleX(-1); }` : ''}
+
+
+/* 5. 清理 */
+@parent::after, &::before, &::after {
+    display: none !important;
+}`;
+                    fileName += `-${sideName}-万能自定义气泡.css`;
+                    title = `${sideName} (万能自定义气泡)`;
+
                 } else {
-                    finalCss = globalHeader + receiverCss.globalReset + receiverCss.global + senderCss.global + receiverCss.globalSharedChildren;
+                    // 否则，保持原样，生成旧的、仅用于文本的自定义气泡代码
+                    finalCss = parts.custom;
+                    fileName += `-${sideName}-自定义气泡.css`;
+                    title = `${sideName} (自定义气泡格式)`;
                 }
+                // =======================================================
+
+            } else if (target === 'global') {
+
+                const buildGlobalCss = (parts) => {
+                    if (bubbleMode === 'all') {
+                        return `/* --- 画框: ${parts.isReceiver ? '接收方' : '发送方'} --- */\n${parts.globalFrame}\n\n` +
+                               `/* --- 悬浮卡片 Margin: ${parts.isReceiver ? '接收方' : '发送方'} --- */\n${parts.globalSuspendedMargin}\n\n` +
+                               `/* --- 文本/语音: ${parts.isReceiver ? '接收方' : '发送方'} --- */\n${parts.globalTextVoice}\n`;
+                    } else { // text-only
+                        return `/* --- 文本/语音: ${parts.isReceiver ? '接收方' : '发送方'} --- */\n${parts.global}\n`;
+                    }
+                };
+
+                const receiverGlobal = buildGlobalCss(receiverCssParts);
+                const senderGlobal = buildGlobalCss(senderCssParts);
+                
+                
+                if (bubbleMode === 'all') {
+                    finalCss = `/* --- ${bubbleName} - 全局美化 (全部气泡模式) --- */\n\n` +
+                             `/* 1. 悬浮卡片通用样式 (只需一份) */\n${receiverCssParts.globalSuspended}\n\n` +
+                             `/* 2. (条件性) 内容翻转 (只需一份) */\n${senderCssParts.globalFlipContent || receiverCssParts.globalFlipContent}\n\n` +
+                             receiverGlobal + senderGlobal +
+                             `/* 99. 清理 (只需一份) */\n${receiverCssParts.globalCleanup}\n`;
+                } else {
+                    finalCss = `/* --- ${bubbleName} - 全局美化 (仅文本语音模式) --- */\n\n` +
+                             `/* 1. 基础重置 (只需一份) */\n${receiverCssParts.globalReset}\n\n` +
+                             receiverGlobal + senderGlobal +
+                             `/* 99. 共享样式 (只需一份) */\n${receiverCssParts.globalSharedChildren}\n`;
+                }
+                
                 fileName += '-全局美化.css';
-                title = `全局美化格式 (${modeSuffix}模式)`;
+                title = '全局美化格式';
+
+            } else { // Ephone format
+                const result = generateEphoneCss(target, bubbleName);
+                if (!result) return null;
+                finalCss = result.css;
+                fileName = result.fileName;
+                title = result.title;
             }
             
             return { css: finalCss, fileName, title };
         }
+        function createAppCssString(side, data, url, bubbleMode, flip = false) {
+            const isReceiver = side === 'receiver';
+            const flipTransform = flip ? ' transform: scaleX(-1);' : '';
+            const customPadding = `${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left}`;
 
-        function createAppCssString(side, data, url, flip, applyToAll) {
-            if (applyToAll) {
-                // "画框"模式逻辑
-                const isReceiver = side === 'receiver';
-                const wrapperSelector = isReceiver ? 
-                    `#page-conversation .message-wrapper.received .message-main-content` : 
-                    `#page-conversation .message-wrapper.sent .message-main-content`;
-                
-                const flipTransform = flip ? ' transform: scaleX(-1);' : '';
-                
-                const frameCss = `\n/* ${isReceiver ? '1. 接收方 (左侧) 画框样式' : '2. 发送方 (右侧) 画框样式'} */
-${wrapperSelector} {
+            const preciseFlipBack = flip ? `
+& .single-line-text,
+& .reply-text,
+& .voice-details,
+& .quoted-message-preview {
+    transform: scaleX(-1);
+}` : '';
+
+            // ================== 核心修正：为“仅文本语音”模式重写 customCss ==================
+            const customCss = `/* 
+ * 步骤一：【精确打击】只为文本和语音消息应用皮肤
+ */
+&.text,
+&.voice {
+    /* --- 关键：重置默认样式 --- */
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border: none !important;
+    border-style: solid !important;
+    box-sizing: border-box !important;
+    color: #000 !important;
+    min-width: 0 !important;
+    line-height: 1.6 !important;
+    font-size: 16px !important;
+    ${data.extraStyles}
+
+    /* --- 图片边框样式 --- */
+    border-image-source: url('${url}') !important;
+    border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
+    border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
+    padding: ${customPadding} !important;${flipTransform}
+}
+
+/*
+ * 步骤二：清理默认的三角箭头
+ */
+&.text::before, &.text::after,
+&.voice::before, &.voice::after {
+    display: none !important;
+}
+
+/*
+ * 步骤三：确保内部元素颜色正确，并实现精准反向翻转
+ */
+&.text * , &.voice * { 
+    color: inherit !important; 
+}
+${preciseFlipBack}
+& .quoted-message-preview { 
+    background-color: transparent !important; 
+    border-color: rgba(0,0,0,0.2) !important; 
+}`;
+            // =================================================================================
+
+            const globalReset = `#page-conversation .message.text, #page-conversation .message.voice { border-radius: 0 !important; box-shadow: none !important; background: transparent !important; border: none !important; border-style: solid !important; box-sizing: border-box !important; color: #000 !important; min-width: 0 !important; line-height: 1.6 !important; font-size: 16px !important; width: auto; height: auto; }`;
+            const globalSelector = isReceiver ? `#page-conversation .message.received.text,\n#page-conversation .message.received.voice` : `#page-conversation .message.sent.text,\n#page-conversation .message.sent.voice`;
+            const preciseGlobalFlipBack = flip ? `
+${isReceiver ? '#page-conversation .message.received' : '#page-conversation .message.sent'} .single-line-text,
+${isReceiver ? '#page-conversation .message.received' : '#page-conversation .message.sent'} .reply-text,
+${isReceiver ? '#page-conversation .message.received' : '#page-conversation .message.sent'} .voice-details,
+${isReceiver ? '#page-conversation .message.received' : '#page-conversation .message.sent'} .quoted-message-preview {
+    transform: scaleX(-1);
+}` : '';
+            const globalCss = `${globalSelector} {\n    ${data.extraStyles}\n    border-image-source: url('${url}') !important;\n    border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;\n    border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;\n    padding: ${customPadding} !important;${flipTransform}\n}\n${preciseGlobalFlipBack}`;
+            const globalSharedChildren = `\n#page-conversation .message.text * , #page-conversation .message.voice * { color: inherit !important; }\n#page-conversation .quoted-message-preview { background-color: transparent !important; border-color: rgba(0,0,0,0.2) !important; }\n#page-conversation .message.text::before, #page-conversation .message.text::after, #page-conversation .message.voice::before, #page-conversation .message.voice::after { display: none !important; }`;
+            const frameSelector = isReceiver ? `#page-conversation .message-wrapper.received .message-main-content` : `#page-conversation .message-wrapper.sent .message-main-content`;
+            const globalFrame = `${frameSelector} {
     border-style: solid !important;
     border-image-source: url('${url}') !important;
     border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
@@ -575,80 +713,50 @@ ${wrapperSelector} {
     padding: 0 !important;
     background: transparent !important;
     border-radius: 0 !important;
-    max-width: 230px !important; 
+    max-width: 230px !important;
     box-sizing: border-box !important;${flipTransform}
 }`;
-                
-                // 共享的重置和定位样式 (只需生成一次)
-                const frameSharedCss = `\n/* 3. 悬浮卡片定位 (所有卡片消息) */
-#page-conversation .message.transfer,
-#page-conversation .message.red_packet,
-#page-conversation .message.location,
-#page-conversation .message.gift,
-#page-conversation .message.pay_for_me,
-#page-conversation .message.photo,
-#page-conversation .message.video,
-#page-conversation .message.photo-description {
-    margin: 6px 14px 5px 7px !important;
-    position: relative;
-    z-index: 1;
-    border-radius: 12px !important;
-    overflow: hidden;
-}
+            const globalSuspended = (isReceiver) ? `/* For all suspended cards */
+#page-conversation .message.transfer, #page-conversation .message.red_packet, #page-conversation .message.location, #page-conversation .message.gift, #page-conversation .message.pay_for_me, #page-conversation .message.photo, #page-conversation .message.video, #page-conversation .message.photo-description {
+    position: relative; z-index: 1; border-radius: 12px !important; overflow: hidden;
+}` : '';
+            const suspendedSelector = isReceiver 
+                ? `#page-conversation .message-wrapper.received .message.transfer,\n#page-conversation .message-wrapper.received .message.red_packet,\n#page-conversation .message-wrapper.received .message.location,\n#page-conversation .message-wrapper.received .message.gift,\n#page-conversation .message-wrapper.received .message.pay_for_me,\n#page-conversation .message-wrapper.received .message.photo,\n#page-conversation .message-wrapper.received .message.video,\n#page-conversation .message-wrapper.received .message.photo-description`
+                : `#page-conversation .message-wrapper.sent .message.transfer,\n#page-conversation .message-wrapper.sent .message.red_packet,\n#page-conversation .message-wrapper.sent .message.location,\n#page-conversation .message-wrapper.sent .message.gift,\n#page-conversation .message-wrapper.sent .message.pay_for_me,\n#page-conversation .message-wrapper.sent .message.photo,\n#page-conversation .message-wrapper.sent .message.video,\n#page-conversation .message-wrapper.sent .message.photo-description`;
+            const suspendedMargin = `margin: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left} !important;`;
+            const globalSuspendedMargin = `${suspendedSelector} {\n    ${suspendedMargin}\n}`;
+            const flipTargetSelector = isReceiver ? '#page-conversation .message-wrapper.received .message' : '#page-conversation .message-wrapper.sent .message';
+            const globalFlipContent = flip ? `\n/* Flip content back for the flipped side */\n${flipTargetSelector} {\n    transform: scaleX(-1);\n}` : '';
+            const textVoiceSelector = isReceiver ? `#page-conversation .message.received.text,\n#page-conversation .message.received.voice` : `#page-conversation .message.sent.text,\n#page-conversation .message.sent.voice`;
+            const textVoicePadding = `padding: ${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left} !important;`;
+            const globalTextVoice = `${textVoiceSelector} {\n    background: transparent !important;\n    border: none !important;\n    box-shadow: none !important;\n    margin: 0 !important;\n    color: black !important;\n    position: relative; /* Ensure it's rendered correctly */\n    ${textVoicePadding}\n}`;
+            const globalCleanup = (isReceiver) ? `/* Cleanup default pointers */\n#page-conversation .message-main-content::after,\n#page-conversation .message::before,\n#page-conversation .message::after,\n#page-conversation .message.sent.text::before,\n#page-conversation .message.received.text::after {\n    display: none !important;\n}` : '';
 
-/* 4. 文本/语音气泡重置 */
-#page-conversation .message.sent.text, #page-conversation .message.sent.voice,
-#page-conversation .message.received.text, #page-conversation .message.received.voice {
-    background: transparent !important; border: none !important; box-shadow: none !important;
-    margin: 0 !important; padding: 6px 14px 5px 7px !important;
-    color: black !important;
-}
-
-/* 5. 清理所有默认小三角 */
-#page-conversation .message-main-content::after,
-#page-conversation .message::before, #page-conversation .message::after {
-    display: none !important;
-}`;
-
-                // 自定义气泡格式不适用于画框模式，所以我们直接提供全局代码
-                const customCssEquivalent = `/* 
-  "画框"模式是一个全局样式, 无法作为单个自定义气泡使用。
-  请将此代码粘贴到 "外观设置" -> "全局美化" -> "CSS代码编辑器" 中。
-*/\n` + frameCss + frameSharedCss;
-
-                return { custom: customCssEquivalent, globalFrame: frameCss, globalFrameShared: frameSharedCss };
-
-            } else {
-                // "仅文本/语音"模式逻辑 (原逻辑)
-                const flipTransform = flip ? ' transform: scaleX(-1);' : '';
-                const customPadding = `${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left}`;
-
-                const customCss = `& {
-    border-radius: 0 !important; box-shadow: none !important; background: transparent !important;
-    border: none !important; border-style: solid !important; box-sizing: border-box !important;
-    color: #000 !important; min-width: 0 !important; line-height: 1.6 !important; font-size: 16px !important;
-    ${data.extraStyles}
-    border-image-source: url('${url}') !important;
-    border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important;
-    border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important;
-    padding: ${customPadding} !important;${flipTransform}
-}
-& * { color: inherit !important; ${flip ? 'transform: scaleX(-1);' : ''} }
-& .quoted-message-preview { background-color: transparent !important; border-color: rgba(0,0,0,0.2) !important; }`;
-
-                const isReceiver = side === 'receiver';
-                const globalReset = `#page-conversation .message.text, #page-conversation .message.voice { border-radius: 0 !important; box-shadow: none !important; background: transparent !important; border: none !important; border-style: solid !important; box-sizing: border-box !important; color: #000 !important; min-width: 0 !important; line-height: 1.6 !important; font-size: 16px !important; width: auto; height: auto; }`;
-                const globalSelector = isReceiver ? `#page-conversation .message.received.text,\n#page-conversation .message.received.voice` : `#page-conversation .message.sent.text,\n#page-conversation .message.sent.voice`;
-                const globalCss = `\n/* ${isReceiver ? '2. 左侧气泡' : '3. 右侧气泡'} */\n${globalSelector} { ${data.extraStyles} border-image-source: url('${url}') !important; border-image-slice: ${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill !important; border-image-width: ${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left} !important; padding: ${customPadding} !important;${flipTransform} }\n${flip ? `${globalSelector} * { transform: scaleX(-1); }` : ''}`;
-                const globalSharedChildren = `\n/* 4. 确保嵌套文本继承颜色 */\n#page-conversation .message.text *, #page-conversation .message.voice * { color: inherit !important; }\n#page-conversation .quoted-message-preview { background-color: transparent !important; border-color: rgba(0,0,0,0.2) !important; }\n#page-conversation .message.text::before, #page-conversation .message.text::after, #page-conversation .message.voice::before, #page-conversation .message.voice::after { display: none !important; }`;
-
-                return { custom: customCss, global: globalCss, globalReset: globalReset, globalSharedChildren: globalSharedChildren };
-            }
+            return { 
+                custom: customCss, 
+                global: globalCss, 
+                globalReset: globalReset, 
+                globalSharedChildren: globalSharedChildren,
+                globalFrame: globalFrame,
+                globalSuspended: globalSuspended,
+                globalTextVoice: globalTextVoice,
+                globalCleanup: globalCleanup,
+                globalFlipContent: globalFlipContent,
+                globalSuspendedMargin: globalSuspendedMargin,
+                // ================== 新增的返回零件 ==================
+                isReceiver: isReceiver,
+                url: url,
+                slice: `${data.slice.top} ${data.slice.right} ${data.slice.bottom} ${data.slice.left} fill`,
+                borderWidth: `${data.borderWidth.top} ${data.borderWidth.right} ${data.borderWidth.bottom} ${data.borderWidth.left}`,
+                margin: `${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left}`,
+                flippedMargin: `${data.padding.top} ${data.padding.left} ${data.padding.bottom} ${data.padding.right}`,
+                padding: `${data.padding.top} ${data.padding.right} ${data.padding.bottom} ${data.padding.left}`,
+                flippedPadding: `${data.padding.top} ${data.padding.left} ${data.padding.bottom} ${data.padding.right}`,
+                flipSender: (side === 'sender' && flip),
+                flipReceiver: (side === 'receiver' && flip)
+                // =================================================
+            };
         }
-        
-        // =========================================================================
-        // ======================== END: MODIFIED FUNCTIONS ========================
-        // =========================================================================
 
         function generateEphoneCss(target, bubbleName) {
             const processConfig = (config, color) => {
@@ -726,6 +834,10 @@ ${wrapperSelector} {
             return { css: finalCss, fileName, title };
         }
         
+        // =========================================================================
+        // ======================== END: CORRECTED CODE BLOCK ========================
+        // =========================================================================
+
         function downloadFile(content, fileName, contentType) {
             const blob = new Blob([content], { type: contentType }); 
             const link = document.createElement('a');
