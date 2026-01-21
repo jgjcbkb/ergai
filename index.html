@@ -250,6 +250,11 @@
                     <button class="btn-small active" id="shape-circle-btn">圆形</button>
                     <button class="btn-small" id="shape-square-btn">方形</button>
                 </div>
+                <!-- 新增：指定角色名输入框 -->
+                <div class="control-row">
+                    <label>限定角色：</label>
+                    <input type="text" id="frame-target-name" class="btn-small" placeholder="留空则所有人通用" style="flex-grow:1; text-align:left; padding-left:10px;">
+                </div>
                 <div class="control-row">
                     <label>操作：</label>
                     <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
@@ -812,7 +817,7 @@ document.getElementById('dl-music-css-btn').addEventListener('click', downloadMu
     padding: 0 !important;
     background: transparent !important;
     border-radius: 0 !important;
-    max-width: 230px !important;
+    max-width: inherit !important;
     box-sizing: border-box !important;
     ${flip ? 'transform: scaleX(-1);' : ''}
 }
@@ -979,7 +984,7 @@ ${isReceiver ? '#page-conversation .message.received' : '#page-conversation .mes
     padding: 0 !important;
     background: transparent !important;
     border-radius: 0 !important;
-    max-width: 230px !important;
+    max-width: inherit !important;
     box-sizing: border-box !important;${flipTransform}
 }`;
             const globalSuspended = (isReceiver) ? `/* For all suspended cards */
@@ -1363,9 +1368,15 @@ ${isReceiver ? '#page-conversation .message.received' : '#page-conversation .mes
             const mirroredXPercent = (-50 - rawXPercent).toFixed(2);
 
             // 3. 处理三种模式的逻辑
+            
+            // --- 新增：获取限定角色名并构建选择器 ---
+            const targetName = document.getElementById('frame-target-name').value.trim();
+            const selector = targetName ? `.message-avatar[data-name="${targetName}"]` : `.message-avatar`;
+            // --- 新增结束 ---
+
             let cssResult = `/* --- 黑麦手机专属头像框代码 (多模式适配版) --- */\n`;
-            cssResult += `.message-avatar { overflow: visible !important; position: relative !important; background-color: transparent !important; }\n`;
-            cssResult += `.message-avatar::after { content: ''; position: absolute; top: 50%; left: 50%; width: ${widthPercent}%; height: ${widthPercent}%; background-image: url('${img.src}'); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; pointer-events: none; z-index: 10; }\n\n`;
+            cssResult += `${selector} { overflow: visible !important; position: relative !important; background-color: transparent !important; }\n`;
+            cssResult += `${selector}::after { content: ''; position: absolute; top: 50%; left: 50%; width: ${widthPercent}%; height: ${widthPercent}%; background-image: url('${img.src}'); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; pointer-events: none; z-index: 10; }\n\n`;
 
             if (designSide === 'none') {
                 // --- 模式：无需翻转 ---
