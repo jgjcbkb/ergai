@@ -127,17 +127,166 @@
             height: 100%; 
             overflow: hidden;
         }
+
+                /* --- 新增：头像框编辑器样式 (解除限制版) --- */
+        #avatar-editor-view {
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column;
+            background-color: #eef1f5;
+            touch-action: none; 
+            z-index: 5; /* 确保层级 */
+        }
+        
+        .avatar-stage-container {
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            position: relative;
+            width: 100%;
+            /* 核心修改：改为 visible，允许图片超出上下边界，不再截断 */
+            overflow: visible; 
+            background-image: radial-gradient(#ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        #avatar-stage {
+            width: 180px; 
+            height: 180px; 
+            background-color: #ddd; 
+            position: relative;
+            /* 核心修改：允许溢出，确保高大的头像框能完整显示 */
+            overflow: visible; 
+            z-index: 10;
+            border: 2px dashed rgba(0,0,0,0.2); 
+            box-sizing: border-box;
+            pointer-events: none; 
+        }
+        
+        #avatar-stage.circle { border-radius: 50%; }
+        #avatar-stage.square { border-radius: 12px; }
+        
+        #avatar-stage::after {
+            content: '头像区域'; display: flex; justify-content: center; align-items: center;
+            width: 100%; height: 100%; color: #888; font-size: 14px; pointer-events: none;
+        }
+
+        #avatar-frame-preview {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform-origin: center center;
+            user-select: none; 
+            pointer-events: none; 
+            max-width: none; max-height: none;
+            opacity: 0.9; 
+        }
+
+        .avatar-tip {
+            position: absolute;
+            bottom: 20px;
+            font-size: 14px; 
+            color: #666; 
+            z-index: 40;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .avatar-controls-panel {
+            background: white; padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 50;
+            touch-action: auto; 
+            /* 稍微压扁一点控制面板，给上面留更多空间 */
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+        }
+        .control-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .control-row label { font-size: 14px; color: #555; width: 70px; flex-shrink: 0; }
+        .btn-small {
+            padding: 8px 12px; font-size: 13px; border: 1px solid #ddd;
+            background: #f9f9f9; border-radius: 4px; cursor: pointer;
+        }
+        .btn-small.active { background: var(--stretch-color); color: white; border-color: var(--stretch-color); }
+        .btn-primary-full {
+            width: 100%; padding: 12px; background: var(--content-color);
+            color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold;
+        }
+
+
         
     </style>
+
 </head>
 <body>
     <div class="top-tabs">
         <button class="tab-btn active" data-editor="ai">AI (左)</button>
         <button class="tab-btn" data-editor="user">User (右)</button>
+        <!-- 新增：头像框标签 -->
+        <button class="tab-btn" data-editor="avatar">头像框</button>
     </div>
     <div class="main-content">
         <div id="canvas-wrapper"><canvas id="editor-canvas"></canvas></div>
         <div id="placeholder"><h2>请为当前标签选择图片</h2><p>点击下方“打开”按钮开始</p></div>
+        
+        <!-- 新增：头像框编辑器界面 -->
+        <div id="avatar-editor-view" style="display: none;">
+            <div class="avatar-stage-container">
+                <!-- 模拟头像区域 -->
+                <div id="avatar-stage" class="circle">
+                    <!-- 你的头像框图片 -->
+                    <img id="avatar-frame-preview" src="" draggable="false">
+                </div>
+                <div class="avatar-tip">单指拖动 / 双指缩放</div>
+            </div>
+            
+            <div class="avatar-controls-panel">
+                <div class="control-row">
+                    <label>底图形状：</label>
+                    <button class="btn-small active" id="shape-circle-btn">圆形</button>
+                    <button class="btn-small" id="shape-square-btn">方形</button>
+                </div>
+                <div class="control-row">
+                    <label>操作：</label>
+                    <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+                    <button class="btn-small" onclick="document.getElementById('avatar-file-input').click()">上传头像框</button>
+                    <button class="btn-small" id="avatar-url-btn">输入URL</button>
+                    <button class="btn-small" id="avatar-reset-btn">重置位置</button>
+                </div>
+                <!-- 新增：选择原图设计的朝向 -->
+<div class="control-row">
+    <label>原图朝向：</label>
+    <div class="npe-side-options">
+        <input type="radio" id="frame-dir-left" name="frame-dir" value="received" checked>
+        <label for="frame-dir-left">左(接收方)</label>
+        <input type="radio" id="frame-dir-right" name="frame-dir" value="sent">
+        <label for="frame-dir-right">右(发送方)</label>
+        <!-- 新增：无需翻转选项 -->
+        <input type="radio" id="frame-dir-none" name="frame-dir" value="none">
+        <label for="frame-dir-none">无需翻转</label>
+    </div>
+</div>
+
+<div class="control-row" style="margin-top: 10px;">
+    <button class="btn-primary-full" id="gen-avatar-code-btn">生成演示网页 (HTML)</button>
+</div>
+<!-- 新增：黑麦手机专属按钮组 -->
+<div class="control-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <button class="btn-small" id="copy-rye-css-btn" style="background: #3498db; color: white; border: none; font-weight: bold;">复制头像框CSS</button>
+    <button class="btn-small" id="dl-rye-css-btn" style="background: #2980b9; color: white; border: none; font-weight: bold;">下载头像框CSS</button>
+</div>
+<!-- 新增：唱片封面专属按钮组 -->
+<div class="control-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <button class="btn-small" id="copy-music-css-btn" style="background: #9b59b6; color: white; border: none; font-weight: bold;">复制唱片封面CSS</button>
+    <button class="btn-small" id="dl-music-css-btn" style="background: #8e44ad; color: white; border: none; font-weight: bold;">下载唱片封面CSS</button>
+</div>
+
+            </div>
+        </div>
     </div>
     <div class="bottom-section">
         <div class="info-panel" id="info-panel" style="display: none;"></div>
@@ -278,9 +427,76 @@
             window.addEventListener('touchmove', onMove, { passive: false, capture: true });
             events.up.forEach(e => window.addEventListener(e, onUp, { passive: false }));
             stretchLineControls.addEventListener('click', (e) => { const btn = e.target.closest('.line-control-btn'); if (btn) { toggleStretchLine(btn.dataset.line); } });
+            
+            // --- 新增：头像编辑器事件绑定 ---
+            document.getElementById('shape-circle-btn').addEventListener('click', () => setAvatarShape('circle'));
+            document.getElementById('shape-square-btn').addEventListener('click', () => setAvatarShape('square'));
+            document.getElementById('avatar-file-input').addEventListener('change', handleAvatarFileSelect);
+            document.getElementById('avatar-url-btn').addEventListener('click', handleAvatarUrlInput);
+            document.getElementById('avatar-reset-btn').addEventListener('click', resetAvatarTransform);
+            document.getElementById('gen-avatar-code-btn').addEventListener('click', generateAvatarCode);
+// 新增：绑定黑麦专属按钮事件
+document.getElementById('copy-rye-css-btn').addEventListener('click', copyRyeCss);
+document.getElementById('dl-rye-css-btn').addEventListener('click', downloadRyeCss);
+// 新增：绑定唱片封面按钮事件
+document.getElementById('copy-music-css-btn').addEventListener('click', copyMusicCss);
+document.getElementById('dl-music-css-btn').addEventListener('click', downloadMusicCss);
+
+            // 修改：将事件绑定到整个编辑器视图，而不是小方块，这样在空白处也能操作
+            const avatarView = document.getElementById('avatar-editor-view');
+            
+            // 触摸事件 (移动 + 缩放)
+            avatarView.addEventListener('touchstart', onAvatarTouchStart, { passive: false });
+            // 注意：touchmove 和 touchend 依然建议绑定在 window 或 view 上
+            avatarView.addEventListener('touchmove', onAvatarTouchMove, { passive: false });
+            avatarView.addEventListener('touchend', onAvatarTouchEnd);
+            
+            // 鼠标事件 (仅移动)
+            avatarView.addEventListener('mousedown', onAvatarMouseDown);
+            // mousemove 和 mouseup 保持在 window 上，防止拖出屏幕失效
+            window.addEventListener('mousemove', onAvatarMouseMove);
+            window.addEventListener('mouseup', onAvatarMouseUp);
         }
 
-        function switchEditor(editor) { if (activeEditor === editor) return; activeEditor = editor; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.tab-btn[data-editor="${editor}"]`).classList.add('active'); document.getElementById('open-file-label').htmlFor = `file-input-${editor}`; updateEditorState(); }
+        // --- 新增：头像编辑器全局变量 ---
+        let avatarState = {
+            img: null,
+            x: 0, y: 0, scale: 1, // 当前状态
+            lastX: 0, lastY: 0, lastScale: 1, // 上次状态
+            isDragging: false,
+            startX: 0, startY: 0, // 拖拽起始点
+            initialPinchDist: 0, // 双指缩放起始距离
+            isPinching: false
+        };
+
+        function switchEditor(editor) { 
+            if (activeEditor === editor) return; 
+            activeEditor = editor; 
+            
+            // 1. 更新标签样式
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); 
+            document.querySelector(`.tab-btn[data-editor="${editor}"]`).classList.add('active'); 
+            
+            // 2. 控制界面显示/隐藏
+            const mainCanvas = document.getElementById('canvas-wrapper');
+            const placeholder = document.getElementById('placeholder');
+            const bottomPanel = document.querySelector('.bottom-section');
+            const avatarView = document.getElementById('avatar-editor-view');
+            
+            if (editor === 'avatar') {
+                // 进入头像模式：隐藏点九编辑器的元素，显示头像编辑器
+                mainCanvas.style.display = 'none';
+                placeholder.style.display = 'none';
+                bottomPanel.style.display = 'none'; // 隐藏底部的点九控制栏
+                avatarView.style.display = 'flex';
+            } else {
+                // 进入AI/User模式：恢复点九编辑器显示
+                avatarView.style.display = 'none';
+                bottomPanel.style.display = 'block';
+                document.getElementById('open-file-label').htmlFor = `file-input-${editor}`; 
+                updateEditorState(); // 让原有的逻辑决定显示画布还是占位符
+            }
+        }
         
         function handleFileSelect(e, editor) {
             const file = e.target.files[0]; if (!file) return;
@@ -887,6 +1103,405 @@ ${isReceiver ? '#page-conversation .message.received' : '#page-conversation .mes
         // =========================================================================
         // ======================== END: CORRECTED CODE BLOCK ========================
         // =========================================================================
+        // --- 新增：头像编辑器核心逻辑 (最终修正版) ---
+
+        function setAvatarShape(shape) {
+            const stage = document.getElementById('avatar-stage');
+            const circleBtn = document.getElementById('shape-circle-btn');
+            const squareBtn = document.getElementById('shape-square-btn');
+            
+            stage.classList.remove('circle', 'square');
+            stage.classList.add(shape);
+            
+            circleBtn.classList.toggle('active', shape === 'circle');
+            squareBtn.classList.toggle('active', shape === 'square');
+        }
+
+        function handleAvatarFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = document.getElementById('avatar-frame-preview');
+                img.src = event.target.result;
+                img.onload = () => {
+                    avatarState.img = img;
+                    // 关键修改：图片加载后，自动计算缩放比例，让它刚好套住头像
+                    autoFitAvatar();
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleAvatarUrlInput() {
+            const url = prompt("请输入头像框图片 URL:");
+            if (!url) return;
+            const img = document.getElementById('avatar-frame-preview');
+            img.crossOrigin = "Anonymous";
+            img.src = url;
+            img.onload = () => {
+                avatarState.img = img;
+                autoFitAvatar();
+            };
+        }
+
+        // 新增函数：自动适配图片大小
+        function autoFitAvatar() {
+            const img = document.getElementById('avatar-frame-preview');
+            const stageSize = 180; // 我们CSS里定义的头像大小
+            
+            // 计算比例：让图片宽或高 刚好等于 头像大小的 1.2倍 (稍微大一点点)
+            const imgSize = Math.min(img.naturalWidth, img.naturalHeight);
+            const initialScale = (stageSize * 1.2) / imgSize;
+            
+            avatarState.x = 0;
+            avatarState.y = 0;
+            avatarState.scale = initialScale;
+            avatarState.lastX = 0;
+            avatarState.lastY = 0;
+            avatarState.lastScale = initialScale;
+            updateAvatarStyle();
+        }
+
+        function resetAvatarTransform() {
+            // 重置时也执行自动适配，而不是变回原大
+            if (avatarState.img) {
+                autoFitAvatar();
+            }
+        }
+
+        function updateAvatarStyle() {
+            const img = document.getElementById('avatar-frame-preview');
+            if (!img.src) return;
+            img.style.transform = `translate(-50%, -50%) translate(${avatarState.x}px, ${avatarState.y}px) scale(${avatarState.scale})`;
+        }
+
+        // --- 鼠标事件处理 ---
+        function onAvatarMouseDown(e) {
+            if (activeEditor !== 'avatar') return;
+            avatarState.isDragging = true;
+            avatarState.startX = e.clientX;
+            avatarState.startY = e.clientY;
+        }
+
+        function onAvatarMouseMove(e) {
+            if (!avatarState.isDragging || activeEditor !== 'avatar') return;
+            e.preventDefault();
+            const dx = e.clientX - avatarState.startX;
+            const dy = e.clientY - avatarState.startY;
+            avatarState.x = avatarState.lastX + dx;
+            avatarState.y = avatarState.lastY + dy;
+            updateAvatarStyle();
+        }
+
+        function onAvatarMouseUp(e) {
+            if (!avatarState.isDragging || activeEditor !== 'avatar') return;
+            avatarState.isDragging = false;
+            avatarState.lastX = avatarState.x;
+            avatarState.lastY = avatarState.y;
+        }
+
+        // --- 触摸事件处理 ---
+        function onAvatarTouchStart(e) {
+            if (activeEditor !== 'avatar') return;
+            if (e.target.closest('.avatar-controls-panel')) return;
+            
+            e.preventDefault(); 
+            
+            if (e.touches.length === 1) {
+                avatarState.isDragging = true;
+                avatarState.startX = e.touches[0].clientX;
+                avatarState.startY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                avatarState.isPinching = true;
+                avatarState.initialPinchDist = getPinchDistance(e);
+                avatarState.lastScale = avatarState.scale; 
+            }
+        }
+
+        function onAvatarTouchMove(e) {
+            if (activeEditor !== 'avatar') return;
+            
+            if (avatarState.isDragging && e.touches.length === 1) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - avatarState.startX;
+                const dy = e.touches[0].clientY - avatarState.startY;
+                avatarState.x = avatarState.lastX + dx;
+                avatarState.y = avatarState.lastY + dy;
+                updateAvatarStyle();
+            } else if (avatarState.isPinching && e.touches.length === 2) {
+                e.preventDefault();
+                const currentDist = getPinchDistance(e);
+                if (avatarState.initialPinchDist > 0) {
+                    const scaleFactor = currentDist / avatarState.initialPinchDist;
+                    avatarState.scale = avatarState.lastScale * scaleFactor;
+                    updateAvatarStyle();
+                }
+            }
+        }
+
+        function onAvatarTouchEnd(e) {
+            if (activeEditor !== 'avatar') return;
+            
+            if (avatarState.isDragging) {
+                avatarState.isDragging = false;
+                avatarState.lastX = avatarState.x;
+                avatarState.lastY = avatarState.y;
+            }
+            if (avatarState.isPinching && e.touches.length < 2) {
+                avatarState.isPinching = false;
+                avatarState.lastScale = avatarState.scale;
+            }
+        }
+
+        function getPinchDistance(e) {
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dx = t1.clientX - t2.clientX;
+            const dy = t1.clientY - t2.clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // --- 生成代码 (所见即所得版) ---
+        function generateAvatarCode() {
+            const img = document.getElementById('avatar-frame-preview');
+            if (!img.src || img.src === window.location.href) {
+                alert("请先上传头像框图片！");
+                return;
+            }
+
+            // 直接读取编辑器当前的状态，不做任何额外换算，保证 1:1
+            const scale = avatarState.scale.toFixed(4);
+            const x = avatarState.x.toFixed(2);
+            const y = avatarState.y.toFixed(2);
+            const isCircle = document.getElementById('avatar-stage').classList.contains('circle');
+            const borderRadius = isCircle ? '50%' : '12px';
+            const imgUrl = img.src;
+
+            // 为了保证下载后效果一致，下载的代码里头像大小也设为 180px
+            // 如果你需要其他尺寸，比例也是一样的
+            const htmlCode = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>头像框效果</title>
+    <style>
+        body { 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; background: #f0f2f5; margin: 0; 
+        }
+        
+        /* 容器：大小与编辑器里一致 (180px) */
+        .avatar-container {
+            width: 180px; 
+            height: 180px;
+            position: relative;
+            /* 这里的 overflow: visible 让你能看到超出的部分，
+               如果你想切掉超出的部分，改成 hidden 即可 */
+            overflow: visible; 
+        }
+        
+        /* 头像底图 */
+        .avatar-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: ${borderRadius};
+            background-color: #ccc;
+            display: block;
+        }
+
+        /* 头像框 */
+        .avatar-frame {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: auto; height: auto;
+            max-width: none; max-height: none;
+            /* 这里的参数就是你刚才手动调出来的 */
+            transform: translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale});
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="avatar-container">
+        <!-- 示例头像 -->
+        <img src="https://via.placeholder.com/180" class="avatar-img">
+        <!-- 你的头像框 -->
+        <img src="${imgUrl}" class="avatar-frame">
+    </div>
+</body>
+</html>`;
+
+            // 弹出命名框
+            let customName = prompt("请输入演示网页的文件名：", "avatar-frame-result");
+            if (customName === null) return; // 点击取消则终止下载
+            let finalFileName = (customName.trim() || "avatar-frame-result") + ".html";
+            
+            downloadFile(htmlCode, finalFileName, 'text/html');
+        }
+        // --- 新增：生成黑麦手机专用的CSS代码 ---
+        function getRyeAvatarCss() {
+            const img = document.getElementById('avatar-frame-preview');
+            if (!img.src || img.src === window.location.href) {
+                return null;
+            }
+
+            const stageSize = 180; 
+            // 获取用户选择的模式
+            const designSide = document.querySelector('input[name="frame-dir"]:checked').value;
+            
+            // 1. 计算尺寸
+            const visualWidth = img.naturalWidth * avatarState.scale;
+            const widthPercent = ((visualWidth / stageSize) * 100).toFixed(2);
+
+            // 2. 计算基础坐标百分比
+            const rawXPercent = (avatarState.x / stageSize * 100);
+            const xPercent = (-50 + rawXPercent).toFixed(2);
+            const yPercent = (-50 + (avatarState.y / stageSize * 100)).toFixed(2);
+            const mirroredXPercent = (-50 - rawXPercent).toFixed(2);
+
+            // 3. 处理三种模式的逻辑
+            let cssResult = `/* --- 黑麦手机专属头像框代码 (多模式适配版) --- */\n`;
+            cssResult += `.message-avatar { overflow: visible !important; position: relative !important; background-color: transparent !important; }\n`;
+            cssResult += `.message-avatar::after { content: ''; position: absolute; top: 50%; left: 50%; width: ${widthPercent}%; height: ${widthPercent}%; background-image: url('${img.src}'); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; pointer-events: none; z-index: 10; }\n\n`;
+
+            if (designSide === 'none') {
+                // --- 模式：无需翻转 ---
+                // 两侧位置镜像，但图片方向都是正的
+                cssResult += `/* 两侧不翻转，位置镜像对齐 */\n`;
+                cssResult += `.message-wrapper.received .message-avatar::after { transform: translate(${xPercent}%, ${yPercent}%); }\n`;
+                cssResult += `.message-wrapper.sent .message-avatar::after { transform: translate(${mirroredXPercent}%, ${yPercent}%); }`;
+            } else {
+                // --- 模式：左或右翻转 ---
+                const isDesignLeft = designSide === 'received';
+                const normalSelector = isDesignLeft ? '.received' : '.sent';
+                const flippedSelector = isDesignLeft ? '.sent' : '.received';
+                
+                cssResult += `/* 设计侧 (${isDesignLeft ? '接收方' : '发送方'}) 位置 */\n`;
+                cssResult += `.message-wrapper${normalSelector} .message-avatar::after { transform: translate(${xPercent}%, ${yPercent}%); }\n\n`;
+                cssResult += `/* 镜像侧 (${!isDesignLeft ? '接收方' : '发送方'}) 位置与翻转 */\n`;
+                cssResult += `.message-wrapper${flippedSelector} .message-avatar::after { transform: translate(${mirroredXPercent}%, ${yPercent}%) scaleX(-1); }`;
+            }
+
+            return cssResult;
+        }
+
+
+
+        function copyRyeCss() {
+            const css = getRyeAvatarCss();
+            if (!css) return alert("请先上传头像框图片！");
+
+            navigator.clipboard.writeText(css).then(() => {
+                alert("黑麦手机CSS已复制到剪贴板！\n请前往手机“外观”设置中粘贴。");
+            }).catch(err => {
+                // 兼容老旧设备
+                const textArea = document.createElement("textarea");
+                textArea.value = css;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert("黑麦手机CSS已复制！");
+            });
+        }
+
+        function downloadRyeCss() {
+            const css = getRyeAvatarCss();
+            if (!css) return alert("请先上传头像框图片！");
+            
+            // 弹出命名框
+            let customName = prompt("请输入头像框CSS的文件名：", "rye-avatar-frame");
+            if (customName === null) return;
+            let finalFileName = (customName.trim() || "rye-avatar-frame") + ".css";
+            
+            downloadFile(css, finalFileName, 'text/css');
+        }
+        // --- 新增：生成黑麦手机唱片封面专用的CSS代码 ---
+                function getMusicOverlayCss() {
+            const img = document.getElementById('avatar-frame-preview');
+            if (!img.src || img.src === window.location.href) {
+                return null;
+            }
+
+            const stageSize = 180; // 编辑器基准
+            
+            // 【核心修正 1】：计算缩放比例
+            // 编辑器里 180px 代表唱片圆圈，在手机里这个圆圈实际只有 54px 宽
+            const widthFactor = (img.naturalWidth * avatarState.scale) / stageSize;
+            const widthPercent = (widthFactor * 54).toFixed(2); 
+
+            // 【核心修正 2】：计算偏移量
+            // 我们需要把你在编辑器里挪动的距离，按比例换算到手机的 54% 比例空间里
+            const xMovePercent = (avatarState.x / stageSize) * 100;
+            const yMovePercent = (avatarState.y / stageSize) * 100;
+
+            // 最终坐标：-50% 是为了自身居中，加上你的偏移
+            const xPercent = (-50 + xMovePercent).toFixed(2);
+            const yPercent = (-50 + yMovePercent).toFixed(2);
+
+            return `/* --- 黑麦手机专属唱片机美化代码 (精准对齐版) --- */
+/* 提示：请粘贴到 外观 -> 全局美化 -> CSS代码编辑器 中 */
+
+.music-record-overlay {
+    /* 1. 彻底杀掉系统自带的碟片背景 */
+    display: block !important;
+    background-image: url('${img.src}') !important;
+    background-color: transparent !important;
+    background-size: 100% 100% !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+
+    /* 2. 尺寸重置：基于唱片圆圈的 54% 比例进行缩放 */
+    width: ${widthPercent}% !important;
+    height: ${widthPercent}% !important;
+
+    /* 3. 坐标重置：黑麦唱片圆心的真实坐标是 50%, 59% */
+    position: absolute !important;
+    left: 50% !important;
+    top: 59% !important; 
+    
+    /* 4. 最终位移：实现所见即所得的包裹效果 */
+    transform: translate(${xPercent}%, ${yPercent}%) !important;
+
+    /* 5. 确保在旋转的专辑图之上，且不挡住点击 */
+    z-index: 10 !important;
+    pointer-events: none !important;
+}`;
+        }
+
+
+        function copyMusicCss() {
+            const css = getMusicOverlayCss();
+            if (!css) return alert("请先上传图片！");
+
+            navigator.clipboard.writeText(css).then(() => {
+                alert("唱片封面CSS已复制！\n请前往手机“外观”设置中粘贴。");
+            }).catch(err => {
+                const textArea = document.createElement("textarea");
+                textArea.value = css;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert("唱片封面CSS已复制！");
+            });
+        }
+
+        function downloadMusicCss() {
+            const css = getMusicOverlayCss();
+            if (!css) return alert("请先上传图片！");
+            
+            // 弹出命名框
+            let customName = prompt("请输入唱片封面CSS的文件名：", "rye-music-overlay");
+            if (customName === null) return;
+            let finalFileName = (customName.trim() || "rye-music-overlay") + ".css";
+            
+            downloadFile(css, finalFileName, 'text/css');
+        }
+
 
         function downloadFile(content, fileName, contentType) {
             const blob = new Blob([content], { type: contentType }); 
